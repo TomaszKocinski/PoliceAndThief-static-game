@@ -1,7 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-class Window;
+#include "Sprite.h"
+#include "Playable_Characters.h"
+class Graphics;
 
 class Game {
 public:
@@ -9,8 +11,11 @@ public:
 	~Game();
 private:
 	void gameLoop();
-	void draw(Window &window);
+	void draw(Graphics &graphics);
 	void update(float elapsedTime);
+
+	Sprite map;
+	Playable_Characters PC;
 };
 
 #endif

@@ -7,12 +7,14 @@
 class Input {
 public:
 	void beginNewFrame();
-	/*void keyUpEvent(const SDL_Event& event);
+	void keyUpEvent(const SDL_Event& event);
+	void keyRightEvent(const SDL_Event& event);
 	void keyDownEvent(const SDL_Event& event);
+	void keyLeftEvent(const SDL_Event& event);
 
 	bool wasKeyPressed(SDL_Scancode key);
 	bool wasKeyReleased(SDL_Scancode key);
-	bool isKeyHeld(SDL_Scancode key);*/
+	bool isKeyHeld(SDL_Scancode key); 
 private:
 	std::map<SDL_Scancode, bool> _heldKeys;
 	std::map<SDL_Scancode, bool> _pressedKeys;
