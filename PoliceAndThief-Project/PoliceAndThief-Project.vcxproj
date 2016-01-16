@@ -67,6 +67,7 @@
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="map.cpp" />
     <ClCompile Include="Playable_Characters.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Graphics.cpp" />
@@ -77,6 +78,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="pair_of_int.h" />
     <ClInclude Include="Playable_Characters.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="turn.h" />

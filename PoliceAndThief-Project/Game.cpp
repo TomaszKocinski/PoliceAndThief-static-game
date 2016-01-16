@@ -26,9 +26,9 @@ void Game::gameLoop() {
 	MAP game_board=MAP();
 	map = Sprite(graphics, "images/map.png",0,0, 2560,1920,1,1);
 
-	PC.thief = new Character(graphics, "images/thief.png",0,0, 40, 40,26,35,0,0);
-	PC.police = new Character(graphics, "images/police.png",0,0, 40, 40,202,208,2,2);
-	PC.police2 = new Character(graphics, "images/police2.png",0,0, 40, 40,386,400,4,4);
+	PC.thief = new Character(graphics, "images/thief.png",0,0, 40, 40,26,35,0,0,game_board);
+	PC.police = new Character(graphics, "images/police.png",0,0, 40, 40,26,35,2,2,game_board);
+	PC.police2 = new Character(graphics, "images/police2.png",0,0, 40, 40,26,35,4,4,game_board);
 	Character* character=PC.thief;
 	bool change_character=false;
 	
@@ -47,7 +47,6 @@ void Game::gameLoop() {
 			else if (event.type == SDL_KEYDOWN) {
 				if (event.key.repeat == 0) {
 					input.keyDownEvent(event);
-					PC.distance();
 				}
 			}
 
@@ -65,8 +64,9 @@ void Game::gameLoop() {
 
 				if(character->pos_y>game_board.max_y-1);
 				else{
-					character->_y=character->_y+game_board.mov_y;
-					character->pos_y++;
+					game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
+					character->move(3);
+					game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
 					change_character=true;
 				}
 			}
@@ -76,8 +76,9 @@ void Game::gameLoop() {
 			if(game_board.map[character->pos_y][character->pos_x].Can_E){
 				if(character->pos_x>game_board.max_x-1);
 				else{
-					character->_x=character->_x+game_board.mov_x;
-					character->pos_x++;
+					game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
+					character->move(2);
+					game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
 					change_character=true;
 				}
 			}
@@ -87,8 +88,9 @@ void Game::gameLoop() {
 			if(game_board.map[character->pos_y][character->pos_x].Can_N){
 				if(character->pos_y<0);
 				else{
-					character->_y=character->_y-game_board.mov_y;
-					character->pos_y--;
+					game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
+					character->move(1);
+					game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
 					change_character=true;
 				}
 			}
@@ -100,16 +102,25 @@ void Game::gameLoop() {
 
 					if(character->pos_x<0);
 					else{
-						character->_x=character->_x-game_board.mov_x;
-						character->pos_x--;
+						game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
+						character->move(4);
+						game_board.switchBusy(pair<int,int>(character->pos_y,character->pos_x));
 						change_character=true;
 					}
 				}
 			}
 		}
 		if(change_character){
-			if(character==PC.thief) character=PC.police;
-			else if(character==PC.police) character=PC.police2;
+			if(character==PC.thief){ 
+				//character=PC.police;
+				PC.Automatic_move(game_board,true);
+				change_character=true;
+			}
+			else if(character==PC.police) {
+				character=PC.police2;
+				//PC.Automatic_move(game_board,true);
+
+			}
 			else if(character==PC.police2) character=PC.thief;
 			change_character=false;
 		}

@@ -10,68 +10,43 @@
 #include <algorithm>
 using namespace std;
 typedef pair<int,int> pint;
-//class pair_of_int{
-//public:
-//	int first;
-//	int second;
-//	pair_of_int(int arg_f,int arg_s){
-//		first=arg_f;
-//		second=arg_s;
-//	}
-//	bool operator==(pair_of_int arg_f){
-//		if(arg_f.first==first && arg_f.second==second) return true;
-//		return false;
-//	}
-//	bool operator==(pair_of_int arg_f){
-//		if(arg_f.first==first && arg_f.second==second) return true;
-//		return false;
-//	}
-//};
 typedef pair<int,pair<int,int>> dpint;
 bool pint_compare(pair<int,int> arg_f, pair<int,int> arg_s){
 	if(arg_f.first==arg_s.first && arg_f.second==arg_s.second) return true;
 	return false;
 }
 int heuristic_cost_estimate(pair<int,int> start, pair<int,int> goal){
-	if(start.first==goal.first && start.second==goal.second){
+	/*if(start.first==goal.first && start.second==goal.second){
 		std::cout << "positon of thief and police is indentical";
 		return -1;
 	}
 	if(start.first==goal.first && start.second==goal.second) {
 		std::cout << "positon of thief and police2 is indentical";
 		return -1;
-	}
+	}*/
 	
 	int dest=0,
 		temp_x=goal.first,
 		temp_y=goal.second;
 	std::pair<int,int> dist=std::make_pair<int,int>(0,0);
-	while(start.first>temp_x){
+	while(start.second>temp_x){
 		dest++;
 		temp_x++;
 	}
-	while(start.first<temp_x){
+	while(start.second<temp_x){
 		dest++;
 		temp_x--;
 	}
-	while(start.second>temp_y){
+	while(start.first>temp_y){
 		dest++;
 		temp_y++;
 	}
-	while(start.second<temp_y){
+	while(start.first<temp_y){
 		dest++;
 		temp_y--;
 	}
 
 	return dest;
-}
-Playable_Characters::Playable_Characters(Graphics graphics){
-	thief=NULL;
-	police=NULL;
-	police2=NULL;
-	thief	= new Character(graphics, "images/thief.png",0,0, 40, 40,26,35,0,0);
-	police	= new Character(graphics, "images/police.png",0,0, 40, 40,202,208,2,2);
-	police2	= new Character(graphics, "images/police2.png",0,0, 40, 40,386,400,4,4);
 }
 std::pair<int,int> Playable_Characters::distance() const {
 	if(thief->pos_x==police->pos_x && thief->pos_y==police->pos_y){
@@ -130,13 +105,16 @@ std::pair<int,int> Playable_Characters::distance() const {
 	std::cout<<dist.second<< ' ';
 	return dist;
 }
-void Playable_Characters::Automatic_move(MAP arg){
-	A_star_algorithm(arg,thief,police);
+void Playable_Characters::Automatic_move(MAP arg,bool police_turn){
+	if(police_turn)
+		police->move(A_star_algorithm(arg,police,thief));
+	police2->move(A_star_algorithm(arg,police2,thief));
+
 }
 int Playable_Characters::A_star_algorithm(MAP map, Character* from, Character* to){
 	vector<pint> open_nodes;
 	vector<pint> closed_nodes;
-	map<pint,pint> come_from;
+	vector<vector<pint>> come_from;
 	vector<vector<int>> fscore; //heurestic
 	vector<vector<int>> gscore; //cost of best know path
 	
@@ -155,41 +133,59 @@ int Playable_Characters::A_star_algorithm(MAP map, Character* from, Character* t
 		for(int i=0;i<map.max_y;i++){
 			fscore.push_back(vector<int>());
 			gscore.push_back(vector<int>());
+			come_from.push_back(vector<pint>());
 			for(int j=0;j<map.max_x;j++){
-				fscore[i][j]=INT_MAX;
-				gscore[i][j]=INT_MAX;
+				fscore[i].push_back(INT_MAX);
+				gscore[i].push_back(INT_MAX);
+				come_from[i].push_back(pint(-1,-1));
 			}
 		}
-		fscore[start_x][start_y]=heuristic_cost_estimate(pint(start_x,start_y),pint(to->pos_x,to->pos_y));
-		gscore[start_x][start_y]=0;
+		fscore[start_y][start_x]=heuristic_cost_estimate(pint(start_x,start_y),pint(to->pos_x,to->pos_y));
+		gscore[start_y][start_x]=0;
+		come_from[start_y][start_x]=pint(start_x,start_y);
 	}
 
 	while(!open_nodes.empty()){
 		pint current=*open_nodes.begin();
 		if(current.first==to->pos_x && current.second==to->pos_y){
-			return 7;
+			return reconstrut_path_from_A_star_algorithm(come_from,current,from);
 		}
 		open_nodes.erase(open_nodes.begin());
 		closed_nodes.push_back(current);
 		
-		vector<pint> neighbor=map.neighbor(pint(from->pos_x,from->pos_y));
+		vector<pint> neighbor=map.neighbor(pint(current.first,current.second));
 		for(vector<pint>::iterator ite=neighbor.begin();ite!=neighbor.end();ite++){
 			if(find(closed_nodes.begin(),closed_nodes.end(),*ite)!=closed_nodes.end()){
 				continue;
 			}
-			int temp_g_score=gscore[current.first][current.second]+1;
+			int temp_g_score=gscore[ite->second][ite->first]+1;
 			int temp_f_score=heuristic_cost_estimate(pint(ite->first,ite->second),pint(to->pos_x,to->pos_y));
 			if(find(open_nodes.begin(),open_nodes.end(),*ite)==open_nodes.end()){
 				open_nodes.push_back(*ite);
 			}
-			else if(temp_g_score >= gscore[ite->first][ite->second]){
+			else if(temp_g_score >= gscore[ite->second][ite->first]){
 				continue;
 			}
-			//come_from[*ite]=current;
-			gscore[ite->first][ite->second]=temp_g_score;
-			fscore[ite->first][ite->second]=temp_g_score +temp_f_score;
+			come_from[ite->second][ite->first]=current;
+			gscore[ite->second][ite->first]=temp_g_score;
+			fscore[ite->second][ite->first]=temp_g_score +temp_f_score;
 		}
 	}
 	throw exception();
 }
-
+int Playable_Characters::reconstrut_path_from_A_star_algorithm(vector<vector<pint>> arg, pint current, Character* character){
+	
+	while(true){
+		cout<<current.first<<"." <<current.second<<" ";
+		current=arg[current.second][current.first];
+		if((current.first==character->pos_x || current.first==character->pos_x-1 || current.first==character->pos_x+1) && (current.second==character->pos_y || current.second==character->pos_y-1 || current.second==character->pos_y+1)){
+			cout<<endl;
+			if(current.second==character->pos_y-1) return 1;
+			if(current.first==character->pos_x+1) return 2;
+			if(current.second==character->pos_y+1) return 3;
+			if(current.first==character->pos_x-1) return 4;
+		}
+	}
+	cout<<endl;
+	return 0;
+}

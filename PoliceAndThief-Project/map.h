@@ -21,6 +21,7 @@ class element_of_map{
 		Can_S=S;
 		Can_W=W;
 		impassable =arg_impassable;
+		busy=false;
 	}
 };
 
@@ -31,13 +32,13 @@ public:
 	int mov_x;
 	int mov_y;
 	std::vector<std::vector<element_of_map>> map;
-	MAP():mov_x(88), mov_y(mov_x), max_x(29), max_y(20){
+	MAP():mov_x(88), mov_y(mov_x), max_x(29), max_y(19){
 		map=std::vector<std::vector<element_of_map>>();
+		vector<pair<int,int>> temp_of_grey=allocate_grey_vec();
 		for(int i=0;i<max_y;i++){
 			map.push_back(std::vector<element_of_map>());
 			map.resize(max_y);
-			for(int j=0;j<max_x;j++){
-				
+			for(int j=0;j<max_x;j++){	
 				if((i%2==1) && (j%2==1))				map[i].push_back(element_of_map(false	,false	,false	,false	,true));
 				else if(i==0 && j==0)					map[i].push_back(element_of_map(false	,true	,true	,false	,false));
 				else if(i==0 && j==(max_x-1))			map[i].push_back(element_of_map(false	,false	,true	,true	,false));
@@ -82,22 +83,27 @@ public:
 				else									map[i].push_back(element_of_map(true	,true	,true	,true	,false));
 			}
 		}
+		for each(pair<int,int> ele in temp_of_grey){
+			map[ele.first][ele.second]=element_of_map(false	,false	,false	,false	,true);
+		}
 	}
 	vector<pair<int,int>> neighbor(std::pair<int,int>& arg){
 		vector<pair<int,int>> vec;
-		if(!map[arg.first][arg.second-1].impassable){
+		if(arg.second>0 && !map[arg.second-1][arg.first].impassable){
 			vec.push_back(pair<int,int>(arg.first,arg.second-1));
 		}
-		if(!map[arg.first+1][arg.second].impassable){
-			vec.push_back(pair<int,int>(arg.first+1,arg.second));
-		}
-		if(!map[arg.first][arg.second+1].impassable){
+		if(arg.second<max_y-1 && !map[arg.second+1][arg.first].impassable){
 			vec.push_back(pair<int,int>(arg.first,arg.second+1));
 		}
-		if(!map[arg.first-1][arg.second].impassable){
+		if(arg.first<max_x-1 && !map[arg.second][arg.first+1].impassable){
+			vec.push_back(pair<int,int>(arg.first+1,arg.second));
+		}
+		if(arg.first>0 && !map[arg.second][arg.first-1].impassable){
 			vec.push_back(pair<int,int>(arg.first-1,arg.second));
 		}
 		return vec;
 	}
+	void switchBusy(pair<int,int>);
+	vector<pair<int,int>> allocate_grey_vec();
 };
 #endif

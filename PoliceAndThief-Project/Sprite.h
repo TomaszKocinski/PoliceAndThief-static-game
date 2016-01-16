@@ -2,6 +2,9 @@
 #define SPRITE_H
 #include <string>
 #include <SDL.h>
+#include <vector>
+#include "map.h"
+using namespace std;
 class Graphics;
 class Sprite{
 public:
@@ -22,7 +25,7 @@ class Character: public Sprite{
 public:
 	int pos_x, pos_y;
 	Character();
-	Character(Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, int posX, int posY, int pos_x_arg, int pos_y_arg);
+	Character(Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, int posX, int posY, int pos_x_arg, int pos_y_arg, MAP&);
+	void move(int);
 };
-
 #endif
