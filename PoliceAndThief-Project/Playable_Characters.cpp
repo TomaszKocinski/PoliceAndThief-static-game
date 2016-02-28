@@ -107,8 +107,8 @@ std::pair<int,int> Playable_Characters::distance() const {
 }
 void Playable_Characters::Automatic_move(MAP arg,bool police_turn){
 	if(police_turn)
-		police->move(A_star_algorithm(arg,police,thief));
-	police2->move(A_star_algorithm(arg,police2,thief));
+		police->move(A_star_algorithm(arg,police,thief),arg);
+	police2->move(A_star_algorithm(arg,police2,thief),arg);
 
 }
 int Playable_Characters::A_star_algorithm(MAP map, Character* from, Character* to){
@@ -131,25 +131,37 @@ int Playable_Characters::A_star_algorithm(MAP map, Character* from, Character* t
 		}
 
 		for(int i=0;i<map.max_y;i++){
+			
 			fscore.push_back(vector<int>());
 			gscore.push_back(vector<int>());
 			come_from.push_back(vector<pint>());
 			for(int j=0;j<map.max_x;j++){
+
 				fscore[i].push_back(INT_MAX);
 				gscore[i].push_back(INT_MAX);
 				come_from[i].push_back(pint(-1,-1));
 			}
 		}
 		fscore[start_y][start_x]=heuristic_cost_estimate(pint(start_x,start_y),pint(to->pos_x,to->pos_y));
-		gscore[start_y][start_x]=0;
+		gscore[start_y][start_x]=0;\
 		come_from[start_y][start_x]=pint(start_x,start_y);
 	}
 
 	while(!open_nodes.empty()){
 		pint current=*open_nodes.begin();
+		//if(map.map[current.second][current.first].impassable) cout<<"ERROR IMPASABLE 2"<<endl;
 		if(current.first==to->pos_x && current.second==to->pos_y){
+			/*for each(vector<pint> upperele in come_from){
+				for each(pint ele in upperele){
+					if(ele.first==-1 && ele.second==-1) continue;
+					if(map.map[ele.second][ele.first].impassable){
+						cout<<"ERROR IMPASSABLE";
+					}
+				}
+
+			}*/
 			return reconstrut_path_from_A_star_algorithm(come_from,current,from);
-		}
+		} 
 		open_nodes.erase(open_nodes.begin());
 		closed_nodes.push_back(current);
 		
@@ -166,6 +178,7 @@ int Playable_Characters::A_star_algorithm(MAP map, Character* from, Character* t
 			else if(temp_g_score >= gscore[ite->second][ite->first]){
 				continue;
 			}
+			//if(map.map[current.second][current.first].impassable) cout<<"ERROR IMPASABLE 4"<<endl;
 			come_from[ite->second][ite->first]=current;
 			gscore[ite->second][ite->first]=temp_g_score;
 			fscore[ite->second][ite->first]=temp_g_score +temp_f_score;
@@ -177,14 +190,18 @@ int Playable_Characters::reconstrut_path_from_A_star_algorithm(vector<vector<pin
 	
 	while(true){
 		cout<<current.first<<"." <<current.second<<" ";
+
 		current=arg[current.second][current.first];
-		if((current.first==character->pos_x || current.first==character->pos_x-1 || current.first==character->pos_x+1) && (current.second==character->pos_y || current.second==character->pos_y-1 || current.second==character->pos_y+1)){
-			cout<<endl;
-			if(current.second==character->pos_y-1) return 1;
-			if(current.first==character->pos_x+1) return 2;
-			if(current.second==character->pos_y+1) return 3;
-			if(current.first==character->pos_x-1) return 4;
-		}
+		
+		/*if(current.second==character->pos_y-1 && current.first==character->pos_x) cout<<endl;return 1;
+		if(current.first==character->pos_x+1 && current.second==character->pos_y) cout<<endl;return 2;
+		if(current.second==character->pos_y+1 && current.first==character->pos_x) cout<<endl;return 3;
+		if(current.first==character->pos_x-1 && current.second==character->pos_y) cout<<endl;return 4;*/
+		if(current.second==character->pos_y-1 && current.first==character->pos_x) {cout<<endl;return 1;}
+		if(current.first==character->pos_x+1 && current.second==character->pos_y) {cout<<endl;return 2;}
+		if(current.second==character->pos_y+1 && current.first==character->pos_x) {cout<<endl;return 3;}
+		if(current.first==character->pos_x-1 && current.second==character->pos_y) {cout<<endl;return 4;}
+		
 	}
 	cout<<endl;
 	return 0;

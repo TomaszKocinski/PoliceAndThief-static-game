@@ -53,21 +53,25 @@ Sprite(graphics,filePath,sourceX,sourceY,width,height,posX,posY),pos_x(pos_x_arg
 	_x=posX+x*map.mov_x;
 	_y=posY+y*map.mov_y;
 }
-void Character::move(int where_move){
+void Character::move(int where_move,MAP map){
 	int mov=88;
 	if(where_move==1) {
+		if(map.map[pos_y-1][pos_x].impassable) cout<<"ERROR IMPASSABLE 3 N"<<endl;
 		_y-=mov;
 		pos_y--;
 	}
 	if(where_move==2) {
+		if(map.map[pos_y][pos_x+1].impassable) cout<<"ERROR IMPASSABLE 3 E"<<endl;
 		_x+=mov;
 		pos_x++;
 	}
 	if(where_move==3) {
+		if(map.map[pos_y+1][pos_x].impassable) cout<<"ERROR IMPASSABLE 3 S"<<endl;
 		_y+=mov;
 		pos_y++;
 	}
 	if(where_move==4) {
+		if(map.map[pos_y][pos_x-1].impassable) cout<<"ERROR IMPASSABLE 3 W"<<endl;
 		_x-=mov;
 		pos_x--;
 	}
