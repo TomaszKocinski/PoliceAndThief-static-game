@@ -38,7 +38,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:\Users\kocia\Documents\Visual Studio 2010\Projects\PoliceandThief\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\kocia\Documents\Visual Studio 2010\Projects\PoliceandThief\lib\x86;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Users\kocia\Documents\Visual Studio 2010\Projects\PoliceandThief\include;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -47,7 +47,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -68,9 +68,11 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="map.cpp" />
+    <ClCompile Include="Menu.h" />
     <ClCompile Include="Playable_Characters.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="Sprite.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -84,9 +86,7 @@
     <ClInclude Include="turn.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="SDL2.lib" />
-    <Library Include="SDL2main.lib" />
-    <Library Include="SDL2test.lib" />
+    <Library Include="SDL2_ttf.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

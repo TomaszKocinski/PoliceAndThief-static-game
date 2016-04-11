@@ -8,9 +8,7 @@ class Input {
 public:
 	void beginNewFrame();
 	void keyUpEvent(const SDL_Event& event);
-	void keyRightEvent(const SDL_Event& event);
 	void keyDownEvent(const SDL_Event& event);
-	void keyLeftEvent(const SDL_Event& event);
 
 	bool wasKeyPressed(SDL_Scancode key);
 	bool wasKeyReleased(SDL_Scancode key);

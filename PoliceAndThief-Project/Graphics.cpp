@@ -1,18 +1,21 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
-
 #include "Graphics.h"
 
+#include <iostream>
 
 /* Graphics class
 * Holds all information dealing with graphics for the game
 */
 
-Graphics::Graphics() {
-	SDL_CreateWindowAndRenderer(960, 720, 0, &this->_window, &this->_renderer);
+Graphics::Graphics(int width_arg, int height_arg, double scale_arg) {
+	this->height = height_arg;
+	this->width = width_arg;
+	this->scale = scale_arg;
+	SDL_CreateWindowAndRenderer(width, height, 0, &this->_window, &this->_renderer);
 	SDL_SetWindowTitle(this->_window, "Police and Thief");
-	SDL_RenderSetLogicalSize(_renderer,2560,1920);
+	SDL_RenderSetLogicalSize(_renderer, width*scale, height*scale);
 }
 
 Graphics::~Graphics() {
@@ -28,7 +31,9 @@ SDL_Surface* Graphics::loadImage(const std::string &filePath){
 void Graphics::blitSurface(SDL_Texture* texture, SDL_Rect* sourceRectangle, SDL_Rect* destinationRectangle){
 	SDL_RenderCopy(_renderer, texture, sourceRectangle, destinationRectangle);
 }
-
+SDL_Texture* Graphics::createTextureFromSurface(SDL_Surface* surface){
+	return SDL_CreateTextureFromSurface(_renderer, surface);
+}
 void Graphics::flip(){
 	SDL_RenderPresent(_renderer);
 }

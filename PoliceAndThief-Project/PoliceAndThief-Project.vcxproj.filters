@@ -34,7 +34,13 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu.h">
       <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -64,8 +70,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="SDL2.lib" />
-    <Library Include="SDL2main.lib" />
-    <Library Include="SDL2test.lib" />
+    <Library Include="SDL2_ttf.lib" />
   </ItemGroup>
 </Project>

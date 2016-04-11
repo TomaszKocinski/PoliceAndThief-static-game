@@ -1,40 +1,54 @@
 #pragma once
 #include "map.h"
-void MAP::switchBusy(pair<int,int> arg){
-	if(map[arg.first][arg.second].busy){
-		map[arg.first][arg.second].busy=false;
+void MAP::switchFree(pair<int,int> arg){
+	if(map[arg.second][arg.first].free==true){
+		map[arg.second][arg.first].free=false;
 	}
 	else{
-		map[arg.first][arg.second].busy=true;
+		map[arg.second][arg.first].free=true;
 	}
 }
-vector<pair<int,int>> MAP::allocate_grey_vec(){
-	vector<pair<int,int>> temp_of_grey;
-	/*temp_of_grey.push_back(pair<int,int>(4,15));
-	temp_of_grey.push_back(pair<int,int>(6,5));
-	temp_of_grey.push_back(pair<int,int>(6,9));
-	temp_of_grey.push_back(pair<int,int>(6,21));
-	temp_of_grey.push_back(pair<int,int>(8,11));
-	temp_of_grey.push_back(pair<int,int>(10,15));
-	temp_of_grey.push_back(pair<int,int>(12,21));
-	temp_of_grey.push_back(pair<int,int>(12,5));
-	temp_of_grey.push_back(pair<int,int>(14,13));
-	temp_of_grey.push_back(pair<int,int>(16,5));
-	temp_of_grey.push_back(pair<int,int>(16,23));
-	temp_of_grey.push_back(pair<int,int>(18,15));*/
+MAP::MAP() :mov_x(88), mov_y(mov_x), max_x(29), max_y(20){
 
-
-	temp_of_grey.push_back(pair<int,int>(5,6));
-	temp_of_grey.push_back(pair<int,int>(5,12));
-	temp_of_grey.push_back(pair<int,int>(5,16));
-	temp_of_grey.push_back(pair<int,int>(9,6));
-	temp_of_grey.push_back(pair<int,int>(11,8));
-	temp_of_grey.push_back(pair<int,int>(13,14));
-	temp_of_grey.push_back(pair<int,int>(15,4));
-	temp_of_grey.push_back(pair<int,int>(15,10));
-	temp_of_grey.push_back(pair<int,int>(15,18));
-	temp_of_grey.push_back(pair<int,int>(21,6));
-	temp_of_grey.push_back(pair<int,int>(21,12));
-	temp_of_grey.push_back(pair<int,int>(23,16));
-	return temp_of_grey;
+	for (int i = 1; i<max_y; i = i + 2){
+		for (int j = 1; j<max_x; j = j + 2){
+			map[i][j].passable = false;
+		}
+	}
+	map[4][15].passable = false;
+	map[6][5].passable = false;
+	map[6][9].passable = false;
+	map[6][21].passable = false;
+	map[8][11].passable = false;
+	map[10][15].passable = false;
+	map[12][21].passable = false;
+	map[12][5].passable = false;
+	map[14][13].passable = false;
+	map[16][5].passable = false;
+	map[16][23].passable = false;
+	map[18][15].passable = false;
+}
+vector<pair<int, int>> MAP::neighbor(std::pair<int, int>& arg){
+	vector<pair<int, int>> vec;
+	if (arg.second>0 && map[arg.second - 1][arg.first].passable){
+		vec.push_back(pair<int, int>(arg.first, arg.second - 1));
+	}
+	if (arg.second<max_y - 1 && map[arg.second + 1][arg.first].passable){
+		vec.push_back(pair<int, int>(arg.first, arg.second + 1));
+	}
+	if (arg.first<max_x - 1 && map[arg.second][arg.first + 1].passable){
+		vec.push_back(pair<int, int>(arg.first + 1, arg.second));
+	}
+	if (arg.first>0 && map[arg.second][arg.first - 1].passable){
+		vec.push_back(pair<int, int>(arg.first - 1, arg.second));
+	}
+	return vec;
+}
+MAP& MAP::operator=(MAP& arg){
+	 map = map;
+	 return *this;
+}
+bool MAP::ispassable(std::pair<int, int>& arg){
+	if (map[arg.second][arg.first].passable) return true;
+	return false;
 }

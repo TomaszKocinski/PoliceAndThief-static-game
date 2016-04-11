@@ -1,7 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "Sprite.h"
 #include "Playable_Characters.h"
 class Graphics;
 
@@ -11,11 +10,11 @@ public:
 	~Game();
 private:
 	void gameLoop();
-	void draw(Graphics &graphics);
+	void draw(Graphics &graphics,Playable_Characters&);
 	void update(float elapsedTime);
-
+	
 	Sprite map;
-	Playable_Characters PC;
+	
 };
 
 #endif
