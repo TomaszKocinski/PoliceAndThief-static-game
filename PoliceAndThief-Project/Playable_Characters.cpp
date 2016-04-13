@@ -52,27 +52,26 @@ int heuristic_cost_estimate(pair<int, int> start, pair<int, int> goal){
 
 void Playable_Characters::Automatic_move(MAP& arg, bool police_turn){
 	if (police_turn){
-		police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, police, thief), this->police), arg);
-		police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, police2, thief), this->police2), arg);
+		police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), this->police), arg);
+		police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), this->police2), arg);
 	}
 	else{
 		thief->move(ManhatanDinstance(arg), arg);
 	}
 
 }
-pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map, Character* from, Character* to){
+pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map, pair<int, int>& from, pair<int, int>& to){
 	vector<pint> open_nodes;
 	vector<pint> closed_nodes;
 	vector<vector<pint>> come_from;
 	vector<vector<int>> fscore; //heurestic
 	vector<vector<int>> gscore; //cost of best know path
 
-	int start_x = from->pos_x, start_y = from->pos_y;
-	open_nodes.push_back(pint(start_x, start_y)); // start node
+	open_nodes.push_back(pint(from.first, from.second)); // start node
 	for (int i = 0; i < map.max_y; i++){
 		for (int j = 0; j < map.max_x; j++){
 			if (!map.map[i][j].accessable()){
-				if (j == to->pos_x && i == to->pos_y);
+				if (j == to.first && i == to.second);
 				else
 					closed_nodes.push_back(pint(j, i)); // impassable
 			}
@@ -90,14 +89,14 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map,
 			come_from[i].push_back(pint(-1, -1));
 		}
 	}
-	fscore[start_y][start_x] = heuristic_cost_estimate(pint(start_x, start_y), pint(to->pos_x, to->pos_y));
-	gscore[start_y][start_x] = 0;
-	come_from[start_y][start_x] = pint(start_x, start_y);
+	fscore[from.second][from.first] = heuristic_cost_estimate(pint(from.first, from.second), pint(to.first, to.second));
+	gscore[from.second][from.first] = 0;
+	come_from[from.second][from.first] = pint(from.first, from.second);
 
 
 	while (!open_nodes.empty()){
 		pint current = *open_nodes.begin();
-		if (current.first == to->pos_x && current.second == to->pos_y){
+		if (current.first == to.first && current.second == to.second){
 			return pair<vector<vector<pint>>, pint>(come_from,current);
 		}
 		open_nodes.erase(open_nodes.begin());
@@ -109,7 +108,7 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map,
 				continue;
 			}
 			int temp_g_score = gscore[ite->second][ite->first] + 1;
-			int temp_f_score = heuristic_cost_estimate(pint(ite->first, ite->second), pint(to->pos_x, to->pos_y));
+			int temp_f_score = heuristic_cost_estimate(pint(ite->first, ite->second), pint(to.first, to.second));
 			if (find(open_nodes.begin(), open_nodes.end(), *ite) == open_nodes.end()){
 				open_nodes.push_back(*ite);
 			}
@@ -140,9 +139,22 @@ int Playable_Characters::reconstrut_path_from_A_star_algorithm(pair<vector<vecto
 		if (current.first == character->pos_x - 1 && current.second == character->pos_y) {
 			cout << endl; return 4;
 		}
+	}
+}
+int Playable_Characters::size_of_path_from_A_star_algorithm(pair<vector<vector<pint>>, pint> arg, pair<int,int> goal){
+	pint current = arg.second;
+	int size=0;
+	while (true){
+		//cout << current.first << "." << current.second << " ";
+		current = arg.first[current.second][current.first];
+		size++;
+		if (current.second == goal.second && current.first == goal.first) {
+		//	cout << endl; 
+			return size;
+		}
 
 	}
-	cout << endl;
+
 	return 0;
 }
 int Playable_Characters::ManhatanDinstance(MAP& map){
@@ -185,14 +197,20 @@ int Playable_Characters::ManhatanDinstance(MAP& map){
 }
 int Playable_Characters::ManhatanDinstance_points(MAP& map){
 	int distance = 0;
-	distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(0, 0));
-	distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(map.max_x - 1, map.max_y - 1));
-	distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(map.max_x - 1, 0));
-	distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(0, map.max_y - 1));
+	
+	//distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(0, 0));
+	//distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(map.max_x - 1, map.max_y - 1));
+	//distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(map.max_x - 1, 0));
+	//distance += heuristic_cost_estimate(pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(0, map.max_y - 1));
 	//distance -= heuristic_cost_estimate(pair<int, int>(thief->_x, thief->_y), pair<int, int>(police->_x, police->_y));
-	//distance -= heuristic_cost_estimate(pair<int, int>(thief->_x, thiefs->_y), pair<int, int>(police2->_x, police2->_y));
+	//distance -= heuristic_cost_estimate(pair<int, int>(thief->_x, thief->_y), pair<int, int>(police2->_x, police2->_y));
 
-	distance -= A_star_algorithm(map, police, thief).first.size()*2;
-	distance -= A_star_algorithm(map, police2, thief).first.size()*2;
+
+	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(0, 0)), pair<int, int>(thief->pos_x, thief->pos_y));
+	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(map.max_x - 1, map.max_y - 1)), pair<int, int>(thief->pos_x, thief->pos_y));
+	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(map.max_x - 1, 0)), pair<int, int>(thief->pos_x, thief->pos_y));
+	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(thief->pos_x, thief->pos_y), pair<int, int>(0, map.max_y - 1)), pair<int, int>(thief->pos_x, thief->pos_y));
+	distance -= size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(police->pos_x, police->pos_y));
+	distance -= size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(police2->pos_x, police2->pos_y));
 	return distance;
 }
