@@ -3,7 +3,7 @@
 #include<array>
 #include<vector>
 using namespace std;
-
+class Playable_Characters;
 class PassableandFree{
 	bool passable;
 	bool free;
@@ -14,9 +14,13 @@ public:
 		free=true;
 	}
 	bool accessable(){
-		if(passable && free) 
+		if (!passable) return false;
+		if (!free) return false;
+		return true;
+		/*if (passable && free) {
 			return true;
-		return false;
+		}
+		return false;*/
 
 	} 
 };
@@ -29,8 +33,10 @@ public:
 	std::array<std::array<PassableandFree,29>,20> map;
 	MAP();
 	vector<pair<int, int>> neighbor(std::pair<int, int>& arg);
-	void switchFree(pair<int,int>);
+	void switchFree(pair<int,int>&);
 	MAP& operator=(MAP&);
 	bool ispassable(std::pair<int, int>& arg);
+	bool cangetto(std::pair<int, int>&);
+	bool cangettoforbay(std::pair<int, int>& arg, int direction);
 };
 #endif

@@ -4,12 +4,13 @@ class Graphics;
 class Menu
 {
 public:
-	Menu();
+	bool Continute;
+	Menu(bool);
 	~Menu();
 	int showmenu(Graphics &);
 	void draw(Graphics &);
 private:
-	static const int NUMMENU = 5;
+	static const int NUMMENU = 4;
 	static const char* labels[NUMMENU];
 	SDL_Surface* menus[NUMMENU];
 	SDL_Rect pos[NUMMENU];

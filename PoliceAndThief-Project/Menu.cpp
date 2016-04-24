@@ -2,9 +2,10 @@
 #include "Graphics.h"
 #include <SDL_ttf.h>
 #include <iostream>
-const char* Menu::labels[NUMMENU] = { "1: Continue", "2: New Game - as Police", "3: New Game - as Thief", "4: HighScore", "5: Exit" };
-Menu::Menu()
+const char* Menu::labels[NUMMENU] = { "1: Continue", "2: New Game - as Police", "3: New Game - as Thief", "4: Exit" };
+Menu::Menu(bool arg)
 {
+	Continute = arg;
 	if (TTF_Init() != 0)
 	{
 		std::cout << "TTF_Init() Failed: " << TTF_GetError() << std::endl;
@@ -12,8 +13,8 @@ Menu::Menu()
 		exit(1);
 	}
 
-	SDL_Color colors[5] = { { 200, 200, 0 }, { 0, 0, 220 }, { 200, 0, 0 }, { 0, 200, 0 }, { 150, 0, 150 } };
-	SDL_Color colors_sele[5] = { { 250, 250, 0 }, { 0, 0, 255 }, { 255, 0, 0 }, { 0, 255, 0 }, { 200, 0, 200 } };
+	SDL_Color colors[4] = { { 200, 200, 0 }, { 0, 0, 220 }, { 200, 0, 0 }, { 0, 200, 0 } };
+	SDL_Color colors_sele[4] = { { 250, 250, 0 }, { 0, 0, 255 }, { 255, 0, 0 }, { 0, 255, 0 } };
 	font = TTF_OpenFont("Verdana.ttf", 100);
 
 	for (int i = 0; i < NUMMENU; i++){
@@ -24,7 +25,7 @@ Menu::Menu()
 		pos[i].y = 200 * (i + 1);
 
 	}
-
+	if (!Continute) menus[0] = NULL;
 
 }
 
@@ -46,7 +47,7 @@ int Menu::showmenu(Graphics &graphics){
 				for (int i = 0; i < NUMMENU; i++){
 					SDL_FreeSurface(menus[i]);
 				}
-				return 1;
+				return 4;
 			case SDL_MOUSEMOTION:
 				x = event.motion.x;
 				y = event.motion.y;
@@ -91,9 +92,9 @@ int Menu::showmenu(Graphics &graphics){
 					for (int i = 0; i < NUMMENU; i++){
 						SDL_FreeSurface(menus[i]);
 					}
-					return 0;
+					return 4;
 				}
-				if (event.key.keysym.sym == SDLK_1){
+				if (event.key.keysym.sym == SDLK_1 && Continute){
 					return 1;
 				}
 				if (event.key.keysym.sym == SDLK_2){

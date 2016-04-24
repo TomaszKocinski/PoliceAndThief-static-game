@@ -27,7 +27,7 @@ void Sprite::draw(Graphics &Graphics, int x, int y) {
 }
 
 Character::Character(){}
-Character::Character(Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, int posX, int posY, int pos_x_arg, int pos_y_arg, MAP map):
+Character::Character(Graphics &graphics, const std::string &filePath, int sourceX, int sourceY, int width, int height, int posX, int posY, int pos_x_arg, int pos_y_arg, MAP& map):
 Sprite(graphics,filePath,sourceX,sourceY,width,height,posX,posY),pos_x(pos_x_arg), pos_y(pos_y_arg){
 
 	std::random_device rd;
@@ -44,7 +44,7 @@ Sprite(graphics,filePath,sourceX,sourceY,width,height,posX,posY),pos_x(pos_x_arg
 	_x=posX+x*map.mov_x;
 	_y=posY+y*map.mov_y;
 }
-void Character::move(int where_move,MAP map){
+void Character::move(int where_move,MAP& map){
 	int mov=88;
 	map.switchFree(pair<int,int>(pos_x,pos_y));
 	if(where_move==1) {
