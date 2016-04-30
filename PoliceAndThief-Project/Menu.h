@@ -1,16 +1,18 @@
 class Graphics;
 #include <SDL.h>
 #include <SDL_ttf.h>
+enum CheckWinEnum;
 class Menu
 {
 public:
 	bool Continute;
-	Menu(bool);
+	Menu(bool,CheckWinEnum);
 	~Menu();
 	int showmenu(Graphics &);
 	void draw(Graphics &);
 private:
-	static const int NUMMENU = 4;
+	CheckWinEnum state;
+	static const int NUMMENU = 6;
 	static const char* labels[NUMMENU];
 	SDL_Surface* menus[NUMMENU];
 	SDL_Rect pos[NUMMENU];

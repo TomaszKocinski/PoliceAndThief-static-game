@@ -88,16 +88,24 @@ bool MAP::cangetto(std::pair<int, int>& to){
 }
 bool MAP::cangettoforbay(std::pair<int, int>& to, int direction){
 	if (direction != 3){
-		if (to.second > 0 && map[to.second - 1][to.first].passable && map[to.second - 1][to.first].free)	return true;
+		if (to.second > 0 && map[to.second - 1][to.first].passable 
+			&& map[to.second - 1][to.first].free
+			)	return true;
 	}
 	if (direction != 2){
-		if (to.first > 0 && map[to.second][to.first - 1].passable && map[to.second][to.first - 1].free) return true;
+		if (to.first > 0 && map[to.second][to.first - 1].passable 
+			&& map[to.second][to.first - 1].free
+			) return true;
 	}
 	if (direction != 1){
-		if (to.second < max_y - 1 && map[to.second + 1][to.first].passable && map[to.second + 1][to.first].free) return true;
+		if (to.second < max_y - 1 && map[to.second + 1][to.first].passable
+			&& map[to.second + 1][to.first].free
+			) return true;
 	}
 	if (direction != 4){
-		if (to.first < max_x - 1 && map[to.second][to.first + 1].passable && map[to.second][to.first + 1].free) return true;
+		if (to.first < max_x - 1 && map[to.second][to.first + 1].passable 
+			&& map[to.second][to.first + 1].free
+			) return true;
 	}
 	return false;
 

@@ -11,6 +11,10 @@
 #include <iostream>
 #include <SDL_ttf.h>
 #include <sstream>
+enum CheckWinEnum
+{
+	Nothing, winpolice, losepolice, winthief, losethief
+};
 Game::Game() {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	if (TTF_Init() != 0)
@@ -27,7 +31,7 @@ Game::~Game() {
 
 }
 void Game::initGUI(){
-	font = TTF_OpenFont("Verdana.ttf",100);
+	font = TTF_OpenFont("Verdana.ttf", 100);
 	SDL_Color colors[4] = { { 0, 0, 0 }, { 255, 150, 150 }, { 0, 0, 0 }, { 0, 0, 0 } };
 	color[0] = colors[0];
 	color[1] = colors[1];
@@ -48,7 +52,7 @@ void Game::initGUI(){
 	GUIsurface[1] = TTF_RenderText_Solid(font, str.c_str(), color[1]);
 	GUIsurface[2] = TTF_RenderText_Solid(font, "Player to move: ", color[2]);
 	GUIsurface[3] = TTF_RenderText_Solid(font, "placeholder", color[3]);
-	
+
 }
 void Game::gameLoop() {
 	Graphics graphics(960, 720, 2.66666);
@@ -67,25 +71,37 @@ void Game::gameLoop() {
 	Character* character = PC.thief;
 	bool change_character = false;
 	bool Player_play_police;
-	Menu* menu = new Menu(false);
-	int choice_from_menu = menu->showmenu(graphics);
-	if (choice_from_menu == 0) return;
-	if (choice_from_menu == 1) {
-		
-	}
-	if (choice_from_menu == 2) {
-		Player_play_police = true;
-		character = PC.police;
-	}
-	if (choice_from_menu == 3){
-		Player_play_police = false;
-		
-	}
-	if (choice_from_menu == 4) return;
-	delete menu;
-	initGUI();
-	updateGUI(character, PC, *game_board);
+	Menu* menu;
+	int choice_from_menu;
+	CheckWinEnum state = losethief;
 	while (true) {
+		if (state != Nothing){
+			menu = new Menu(false, state);
+			choice_from_menu = menu->showmenu(graphics);
+			if (choice_from_menu == 0) return;
+			if (choice_from_menu == 2) {
+				Player_play_police = true;
+				character = PC.police;
+				PC = Playable_Characters(graphics, *game_board);
+				character = PC.police;
+				turns = MAXTURNS + 1;
+
+				state = Nothing;
+			}
+			if (choice_from_menu == 3){
+				Player_play_police = false;
+				state = Nothing;
+				game_board = new MAP();
+				PC = Playable_Characters(graphics, *game_board);
+				character = PC.thief;
+				turns = MAXTURNS + 1;
+
+			}
+			if (choice_from_menu == 4) return;
+			delete menu;
+			initGUI();
+			updateGUI(character, PC, *game_board);
+		}
 		input.beginNewFrame();
 
 		if (SDL_PollEvent(&event)) {
@@ -107,7 +123,7 @@ void Game::gameLoop() {
 			}
 		}
 		if (input.wasKeyPressed(SDL_SCANCODE_ESCAPE) == true) {
-			menu = new Menu(true);
+			menu = new Menu(true, Nothing);
 			choice_from_menu = menu->showmenu(graphics);
 			if (choice_from_menu == 0) return;
 			if (choice_from_menu == 1) {
@@ -120,14 +136,16 @@ void Game::gameLoop() {
 				character = PC.police;
 				turns = MAXTURNS + 1;
 				update(character, PC, *game_board);
+				state = Nothing;
 			}
 			if (choice_from_menu == 3){
 				Player_play_police = false;
 				game_board = new MAP();
 				PC = Playable_Characters(graphics, *game_board);
 				character = PC.thief;
-				turns = MAXTURNS+1;
+				turns = MAXTURNS + 1;
 				update(character, PC, *game_board);
+				state = Nothing;
 			}
 			if (choice_from_menu == 4) return;
 			delete menu;
@@ -168,27 +186,28 @@ void Game::gameLoop() {
 			}
 		}
 		if (change_character){
+			if (state == Nothing) state = PC.checkwincondition(turns, *game_board);
 			if (!Player_play_police){
-				checkwinconditionThief(PC);
 				PC.Automatic_move(*game_board, true);
-				checkwinconditionThief(PC);
+				state = PC.checkwincondition(turns, *game_board);
 				update(character, PC, *game_board);
 			}
 			else {
-				checkwinconditionPolice(PC);
 				if (character == PC.police2) {
+					if (state == Nothing)state = PC.checkwincondition(turns, *game_board);
 					PC.Automatic_move(*game_board, false);
 					update(character, PC, *game_board);
+					if (state == Nothing)state = PC.checkwincondition(turns, *game_board);
 					character = PC.police;
-					
+
 				}
 				else if (character == PC.police)
 					character = PC.police2;
 				updateGUI(character, PC, *game_board);
-				
+
 			}
 			change_character = false;
-			
+
 		}
 		draw(graphics, PC);
 	}
@@ -221,12 +240,18 @@ void Game::update(Character* arg, Playable_Characters& PC, MAP& map) {
 	updateGUI(arg, PC, map);
 }
 void Game::updateGUI(Character* arg, Playable_Characters& PC, MAP& map) {
-	
+
 	std::ostringstream ss;
 	ss << turns;
 	string str = ss.str();
-	color[1].b = turns * 3;
-	color[1].g = turns * 3;
+	if (turns > 85){
+		color[1].b = 255;
+		color[1].g = 255;
+	}
+	else{
+		color[1].b = turns * 3;
+		color[1].g = turns * 3;
+	}
 	GUIsurface[1] = TTF_RenderText_Solid(font, str.c_str(), color[1]);
 	SDL_Color colors[3] = { { 0, 255, 0 }, { 0, 0, 255 }, { 255, 0, 0 } };
 	if (arg == PC.thief)		 GUIsurface[3] = TTF_RenderText_Solid(font, "Thief", colors[0]);
@@ -260,38 +285,4 @@ void Game::updateGUI(Character* arg, Playable_Characters& PC, MAP& map) {
 	{
 		directionarrowsshow[3] = false;
 	}
-}
-CheckWinEnum Game::checkwinconditionPolice(Playable_Characters& PC){
-	if (!turns){
-		cout << "lose police";
-		return losepolice;
-	}
-	else
-	{
-		pair<int, int> whichside(-1,-1);
-		if (whichside.first = isNeighbor(pair<int, int>(PC.police->pos_x, PC.police->pos_y), pair<int, int>(PC.thief->pos_x, PC.thief->pos_y))){
-			if (whichside.first = isNeighbor(pair<int, int>(PC.police2->pos_x, PC.police2->pos_y), pair<int, int>(PC.thief->pos_x, PC.thief->pos_y))){
-				return winpolice;
-			}
-		}
-	}
-	return Nothing;
-}
-CheckWinEnum Game::checkwinconditionThief(Playable_Characters& PC){
-	if (!turns){
-		cout << "win thief";
-		return winthief;
-	}
-	else
-	{
-		pair<int, int> whichside(-1, -1);
-		if (whichside.first = isNeighbor(pair<int, int>(PC.police->pos_x, PC.police->pos_y), pair<int, int>(PC.thief->pos_x, PC.thief->pos_y))){
-			if (whichside.first = isNeighbor(pair<int, int>(PC.police2->pos_x, PC.police2->pos_y), pair<int, int>(PC.thief->pos_x, PC.thief->pos_y))){
-				cout << "lose thief";
-				return losethief;
-			}
-		}
-		
-	}
-	return Nothing;
 }

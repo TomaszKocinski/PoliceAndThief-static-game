@@ -65,11 +65,16 @@
     <ClInclude Include="Playable_Characters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pair_of_int.h">
+    <ClInclude Include="..\include\SDL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="SDL2_ttf.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+    <None Include="SDL.dll" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

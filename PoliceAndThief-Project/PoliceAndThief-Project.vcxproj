@@ -76,17 +76,22 @@
     <ClCompile Include="Sprite.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\SDL.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="map.h" />
-    <ClInclude Include="pair_of_int.h" />
     <ClInclude Include="Playable_Characters.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="turn.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="SDL2_ttf.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="SDL.dll" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

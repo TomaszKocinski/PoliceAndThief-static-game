@@ -2,10 +2,15 @@
 #include "Graphics.h"
 #include <SDL_ttf.h>
 #include <iostream>
-const char* Menu::labels[NUMMENU] = { "1: Continue", "2: New Game - as Police", "3: New Game - as Thief", "4: Exit" };
-Menu::Menu(bool arg)
+enum CheckWinEnum
+{
+	Nothing, winpolice, losepolice, winthief, losethief
+};
+const char* Menu::labels[NUMMENU] = { "1: Continue", "2: New Game - as Police", "3: New Game - as Thief", "4: Exit", "Winner: Thief", "Winner: Police" };
+Menu::Menu(bool arg, CheckWinEnum e)
 {
 	Continute = arg;
+	state = e;
 	if (TTF_Init() != 0)
 	{
 		std::cout << "TTF_Init() Failed: " << TTF_GetError() << std::endl;
@@ -13,8 +18,8 @@ Menu::Menu(bool arg)
 		exit(1);
 	}
 
-	SDL_Color colors[4] = { { 200, 200, 0 }, { 0, 0, 220 }, { 200, 0, 0 }, { 0, 200, 0 } };
-	SDL_Color colors_sele[4] = { { 250, 250, 0 }, { 0, 0, 255 }, { 255, 0, 0 }, { 0, 255, 0 } };
+	SDL_Color colors[6] = { { 200, 200, 0 }, { 0, 0, 220 }, { 200, 0, 0 }, { 0, 200, 0 }, { 0, 255, 0 }, { 0, 0, 255 } };
+	SDL_Color colors_sele[6] = { { 250, 250, 0 }, { 0, 0, 255 }, { 255, 0, 0 }, { 0, 255, 0 }, { 0, 255, 0 }, { 0, 0, 255 } };
 	font = TTF_OpenFont("Verdana.ttf", 100);
 
 	for (int i = 0; i < NUMMENU; i++){
@@ -26,7 +31,8 @@ Menu::Menu(bool arg)
 
 	}
 	if (!Continute) menus[0] = NULL;
-
+	if (state != winpolice) menus[5] = NULL;
+	if (state != winthief) menus[4] = NULL;
 }
 
 Menu::~Menu()

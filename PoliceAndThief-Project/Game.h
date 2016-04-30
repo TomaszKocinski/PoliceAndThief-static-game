@@ -4,11 +4,10 @@
 #include "Playable_Characters.h"
 class Graphics;
 class Character;
+class MAP;
+
 int isNeighbor(pair<int, int> floatingcharacter, pair<int, int> centercharacter);
-enum CheckWinEnum
-{
-	Nothing, winpolice, losepolice, winthief, losethief
-};
+
 class Game {
 public:
 	Game();
@@ -18,8 +17,7 @@ private:
 	void draw(Graphics &graphics,Playable_Characters&);
 	void update(Character* arg, Playable_Characters& PC, MAP& map);
 	void updateGUI(Character* arg, Playable_Characters& PC, MAP& map);
-	CheckWinEnum checkwinconditionPolice(Playable_Characters&);
-	CheckWinEnum checkwinconditionThief(Playable_Characters&);
+	
 	
 	void initGUI();
 	Sprite map;
