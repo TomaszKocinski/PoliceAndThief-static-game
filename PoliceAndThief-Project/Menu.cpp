@@ -1,3 +1,4 @@
+#pragma once
 #include "Menu.h"
 #include "Graphics.h"
 #include <SDL_ttf.h>

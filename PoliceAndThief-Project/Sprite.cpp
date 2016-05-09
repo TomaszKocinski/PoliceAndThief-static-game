@@ -1,3 +1,4 @@
+#pragma once
 #include "Sprite.h"
 #include "Graphics.h"
 #include <iostream>
@@ -34,9 +35,17 @@ Sprite(graphics,filePath,sourceX,sourceY,width,height,posX,posY),pos_x(pos_x_arg
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> d(0, map.max_x-1);
 	int y=d(gen)%(map.max_y-1),x=d(gen);
-	while(!map.map[y][x].accessable()){
-		y=d(gen)%(map.max_y-1);
-		x=d(gen);
+	if (filePath == "images/thief.png"){
+		while (!map.map[y][x].accessable() || ((x + y) % 2)){
+			y = d(gen) % (map.max_y - 1);
+			x = d(gen);
+		}
+	}
+	else {
+		while (!map.map[y][x].accessable() || !((x + y) % 2)){
+			y = d(gen) % (map.max_y - 1);
+			x = d(gen);
+		}
 	}
 	map.switchFree(pair<int,int>(x,y));
 	pos_x=x;

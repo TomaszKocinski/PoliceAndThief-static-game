@@ -3,7 +3,7 @@
 #include "Graphics.h"
 #include "map.h"
 #include "Playable_Characters.h"
-
+#include <random>
 #include <iostream>
 #include <map>
 #include <unordered_map>
@@ -20,47 +20,44 @@ enum directions
 {
 	N = 1, E = 2, S = 3, W = 4
 };
-Playable_Characters::Playable_Characters(Graphics& graphics, MAP& game_board){
-	thief = new Character(graphics, "images/thief.png", 0, 0, 40, 40, 26, 35, 0, 0, game_board);
-	police = new Character(graphics, "images/police.png", 0, 0, 40, 40, 26, 35, 2, 2, game_board);
-	police2 = new Character(graphics, "images/police2.png", 0, 0, 40, 40, 26, 35, 4, 4, game_board);
+Playable_Characters::Playable_Characters(Graphics& graphics, MAP* game_board){
+	map = game_board;
+	thief = new Character(graphics, "images/thief.png", 0, 0, 40, 40, 26, 35, 0, 0, *game_board);
+	police = new Character(graphics, "images/police.png", 0, 0, 40, 40, 26, 35, 2, 2, *game_board);
+	police2 = new Character(graphics, "images/police2.png", 0, 0, 40, 40, 26, 35, 4, 4, *game_board);
 };
 
-bool* Playable_Characters::GetAccessAbleNeighbors(MAP& map){
-	bool* neighbors = new bool[4];
-	if (thief->pos_y > 0 && map.map[thief->pos_y - 1][thief->pos_x].accessable() && map.cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1))){
+bool* Playable_Characters::GetAccessAbleNeighbors(){
+	bool* neighbors = new bool[4]();
+	if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable() && map->cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1))){
 		neighbors[0] = true;
 	}
-	else neighbors[0] = false;
-	if (thief->pos_y < map.max_y - 1 && map.map[thief->pos_y + 1][thief->pos_x].accessable() && map.cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1))){
+	if (thief->pos_y < map->max_y - 1 && map->map[thief->pos_y + 1][thief->pos_x].accessable() && map->cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1))){
 		neighbors[2] = true;
 	}
-	else neighbors[2] = false;
-	if (thief->pos_x < map.max_x - 1 && map.map[thief->pos_y][thief->pos_x + 1].accessable() && map.cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y))){
+	if (thief->pos_x < map->max_x - 1 && map->map[thief->pos_y][thief->pos_x + 1].accessable() && map->cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y))){
 		neighbors[1] = true;
 	}
-	else neighbors[1] = false;
-	if (thief->pos_x > 0 && map.map[thief->pos_y][thief->pos_x - 1].accessable() && map.cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y))){
+	if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable() && map->cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y))){
 		neighbors[3] = true;
 	}
-	else neighbors[3] = false;
 	return neighbors;
 }
-bool* Playable_Characters::GetNeighbors(MAP& map){
+bool* Playable_Characters::GetNeighbors(){
 	bool* neighbors = new bool[4];
-	if (thief->pos_y > 0 && map.map[thief->pos_y - 1][thief->pos_x].accessable()){
+	if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable()){
 		neighbors[0] = true;
 	}
 	else neighbors[0] = false;
-	if (thief->pos_y < map.max_y  && map.map[thief->pos_y + 1][thief->pos_x].accessable()){
+	if (thief->pos_y < map->max_y  && map->map[thief->pos_y + 1][thief->pos_x].accessable()){
 		neighbors[2] = true;
 	}
 	else neighbors[2] = false;
-	if (thief->pos_x < map.max_x  && map.map[thief->pos_y][thief->pos_x + 1].accessable()){
+	if (thief->pos_x < map->max_x  && map->map[thief->pos_y][thief->pos_x + 1].accessable()){
 		neighbors[1] = true;
 	}
 	else neighbors[1] = false;
-	if (thief->pos_x > 0 && map.map[thief->pos_y][thief->pos_x - 1].accessable()){
+	if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable()){
 		neighbors[3] = true;
 	}
 	else neighbors[3] = false;
@@ -72,268 +69,174 @@ int heuristic_cost_estimate(pair<int, int> start, pair<int, int> goal){
 		temp_x = goal.first,
 		temp_y = goal.second;
 	std::pair<int, int> dist = std::make_pair<int, int>(0, 0);
-	while (start.second > temp_x){
+	while (start.first > temp_x){
 		dest++;
 		temp_x++;
 	}
-	while (start.second < temp_x){
+	while (start.first < temp_x){
 		dest++;
 		temp_x--;
 	}
-	while (start.first > temp_y){
+	while (start.second > temp_y){
 		dest++;
 		temp_y++;
 	}
-	while (start.first < temp_y){
+	while (start.second < temp_y){
 		dest++;
 		temp_y--;
 	}
 
 	return dest;
 }
-
-void Playable_Characters::Automatic_move(MAP& arg, bool police_turn){
+bool Playable_Characters::Can_character_move(Character* character){
+	if (character->pos_y > 0 && map->map[character->pos_y - 1][character->pos_x].accessable()){
+		return true;
+	}
+	else if (character->pos_x > 0 && map->map[character->pos_y][character->pos_x - 1].accessable()){
+		return true;
+	}
+	else if (character->pos_y < map->max_y - 1 && map->map[character->pos_y + 1][character->pos_x].accessable()){
+		return true;
+	}
+	else if (character->pos_x < map->max_x - 1 && map->map[character->pos_y][character->pos_x + 1].accessable()){
+		return true;
+	}
+	return false;
+}
+void Playable_Characters::Automatic_move(bool police_turn){
 
 	if (police_turn){
-
-		pair<bool, bool> alreadymoved = pair<bool, bool>(false, false);
-		if (police->pos_x < arg.max_x - 1 && police->pos_x + 1 == thief->pos_x && police->pos_y == thief->pos_y){
-			if (police->pos_x > 0 && arg.map[police->pos_y][police->pos_x - 1].accessable()){
-				police->move(4, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_y > 0 && arg.map[police->pos_y - 1][police->pos_x].accessable()){
-				police->move(1, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_y < arg.max_y - 1 && arg.map[police->pos_y + 1][police->pos_x].accessable()){
-				police->move(3, arg); alreadymoved.first = true;
-			}
-		}
-		else if (police->pos_x > 0 && police->pos_x - 1 == thief->pos_x && police->pos_y == thief->pos_y){
-			if (police->pos_x < arg.max_x - 1 && arg.map[police->pos_y][police->pos_x + 1].accessable()){
-				police->move(2, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_y > 0 && arg.map[police->pos_y - 1][police->pos_x].accessable())
-			{
-				police->move(1, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_y < arg.max_y - 1 && arg.map[police->pos_y + 1][police->pos_x].accessable()){
-				police->move(3, arg); alreadymoved.first = true;
-			}
-
-		}
-		else if (police->pos_y > 0 && police->pos_x == thief->pos_x && police->pos_y - 1 == thief->pos_y){
-			if (police->pos_y < arg.max_y - 1 && arg.map[police->pos_y + 1][police->pos_x].accessable()){
-				police->move(3, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_x > 0 && arg.map[police->pos_y][police->pos_x - 1].accessable())
-			{
-				police->move(2, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_x < arg.max_x - 1 && arg.map[police->pos_y][police->pos_x + 1].accessable()){
-				police->move(4, arg); alreadymoved.first = true;
-			}
-
-		}
-		else if (police->pos_y < arg.max_y - 1 && police->pos_x == thief->pos_x && police->pos_y + 1 == thief->pos_y){
-			if (police->pos_y > 0 && arg.map[police->pos_y - 1][police->pos_x].accessable()){
-				police->move(1, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_x < arg.max_x - 1 && arg.map[police->pos_y][police->pos_x + 1].accessable()){
-				police->move(2, arg); alreadymoved.first = true;
-			}
-			else if (police->pos_x > 0 && arg.map[police->pos_y][police->pos_x - 1].accessable()){
-				police->move(4, arg); alreadymoved.first = true;
-			}
-
-		}
-
-		if (police2->pos_x < arg.max_x - 1 && police2->pos_x + 1 == thief->pos_x  && police2->pos_y == thief->pos_y){
-			if (police2->pos_x > 0 && arg.map[police2->pos_y][police2->pos_x - 1].accessable()){
-				police2->move(4, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_y > 0 && arg.map[police2->pos_y - 1][police2->pos_x].accessable()){
-				police2->move(1, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_y < arg.max_y - 1 && arg.map[police2->pos_y + 1][police2->pos_x].accessable()){
-				police2->move(3, arg); alreadymoved.second = true;
-			}
-
-		}
-		else if (police2->pos_x > 0 && police2->pos_x - 1 == thief->pos_x  && police2->pos_y == thief->pos_y){
-			if (police2->pos_x < arg.max_x - 1 && arg.map[police2->pos_y][police2->pos_x + 1].accessable()){
-				police2->move(2, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_y > 0 && arg.map[police2->pos_y - 1][police2->pos_x].accessable())
-			{
-				police2->move(1, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_y < arg.max_y - 1 && arg.map[police2->pos_y + 1][police2->pos_x].accessable()){
-				police2->move(3, arg); alreadymoved.second = true;
-			}
-
-		}
-		else if (police2->pos_y > 0 && police2->pos_x == thief->pos_x && police2->pos_y - 1 == thief->pos_y){
-			if (police2->pos_y < arg.max_y - 1 && arg.map[police2->pos_y + 1][police2->pos_x].accessable()){
-				police2->move(3, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_x > 0 && arg.map[police2->pos_y][police2->pos_x - 1].accessable())
-			{
-				police2->move(2, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_x < arg.max_x - 1 && arg.map[police2->pos_y][police2->pos_x + 1].accessable()){
-				police2->move(4, arg); alreadymoved.second = true;
-			}
-
-		}
-		else if (police2->pos_y < arg.max_y - 1 && police2->pos_x == thief->pos_x && police2->pos_y + 1 == thief->pos_y){
-			if (police2->pos_y > 0 && arg.map[police2->pos_y - 1][police2->pos_x].accessable()){
-				police2->move(1, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_x < arg.max_x - 1 && arg.map[police2->pos_y][police2->pos_x + 1].accessable()){
-				police2->move(2, arg); alreadymoved.second = true;
-			}
-			else if (police2->pos_y > 0 && arg.map[police2->pos_y][police2->pos_x - 1].accessable()){
-				police2->move(4, arg); alreadymoved.second = true;
-			}
-
-		}
-
-		try{
-			if (!alreadymoved.first && heuristic_cost_estimate(pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)) > 3){
-				alreadymoved.first = true;
-				police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), this->police), arg);
-			}
-			if (!alreadymoved.second && heuristic_cost_estimate(pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)) > 3){
-				alreadymoved.second = true;
-				police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), this->police2), arg);
-			}
-			if (alreadymoved.first && alreadymoved.second)return;
-			bool* neightbours = GetAccessAbleNeighbors(arg);
-			if (neightbours[1] && neightbours[3]){// 1101 0111 0101
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x - 1, thief->pos_y)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x + 1].accessable() && arg.cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x + 1, thief->pos_y)), this->police2), arg);
-			}
-			else if (neightbours[0] && neightbours[2]){// 1111 1110 1011 1010
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y - 1)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y + 1][thief->pos_x].accessable() && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y + 1)), this->police2), arg);
-			}
-			else if (neightbours[0] && neightbours[1]){//1100
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y - 1)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x + 1].accessable() && arg.cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x + 1, thief->pos_y)), this->police2), arg);
-			}
-			else if (neightbours[0] && neightbours[3]){//1001
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y - 1)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x - 1].accessable() && arg.cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x - 1, thief->pos_y)), this->police2), arg);
-			}
-			else if (neightbours[1] && neightbours[2]){//0110
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x + 1, thief->pos_y)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y + 1][thief->pos_x].accessable() && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y + 1)), this->police2), arg);
-			}
-			else if (neightbours[2] && neightbours[3]){//0011
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y + 1)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x - 1].accessable() && arg.cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x - 1, thief->pos_y)), this->police2), arg);
-			}
-			else if (neightbours[0]){
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y - 1)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y - 1][thief->pos_x].accessable() && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y - 1)), this->police2), arg);
-			}
-			else if (neightbours[1]){
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x + 1, thief->pos_y)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x + 1].accessable() && arg.cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x + 1, thief->pos_y)), this->police2), arg);
-			}
-			else if (neightbours[2]){
-				if (!alreadymoved.first &&  arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y + 1)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y + 1][thief->pos_x].accessable() && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y + 1)), this->police2), arg);
-			}
-			else if (neightbours[3]){
-				if (!alreadymoved.first  && arg.cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x - 1, thief->pos_y)), this->police), arg);
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x - 1].accessable() && arg.cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x - 1, thief->pos_y)), this->police2), arg);
-			}
-			else {
-				cout << "all options exhauseted - didnt find possible spot for a star to travel, trying to launch a star regardres of that";
-				if (!alreadymoved.first && arg.map[thief->pos_y][thief->pos_x].accessable() && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y)))
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), this->police), arg);
-				else{
-					if (!alreadymoved.first){
-						if (police->pos_x > 0 && arg.map[police->pos_y][police->pos_x - 1].accessable()){
-							police->move(4, arg); alreadymoved.first = true;
-						}
-						else if (police->pos_y > 0 && arg.map[police->pos_y - 1][police->pos_x].accessable()){
-							police->move(1, arg); alreadymoved.first = true;
-						}
-						else if (police->pos_y < arg.max_y - 1 && arg.map[police->pos_y + 1][police->pos_x].accessable()){
-							police->move(3, arg); alreadymoved.first = true;
-						}
-						else if (police->pos_x < arg.max_x - 1 && arg.map[police->pos_y][police->pos_x + 1].accessable()){
-							police->move(2, arg); alreadymoved.first = true;
-						}
-					}
-				}
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x].accessable() && arg.cangetto(pair<int, int>(thief->pos_x, thief->pos_y)))
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), this->police2), arg);
-				else{
-					if (!alreadymoved.second){
-						if (police2->pos_x > 0 && arg.map[police2->pos_y][police2->pos_x - 1].accessable()){
-							police2->move(4, arg); alreadymoved.second = true;
-						}
-						else if (police2->pos_y > 0 && arg.map[police2->pos_y - 1][police2->pos_x].accessable()){
-							police2->move(1, arg); alreadymoved.second = true;
-						}
-						else if (police2->pos_y < arg.max_y - 1 && arg.map[police2->pos_y + 1][police2->pos_x].accessable()){
-							police2->move(3, arg); alreadymoved.second = true;
-						}
-						else if (police2->pos_x < arg.max_x - 1 && arg.map[police2->pos_y][police2->pos_x + 1].accessable()){
-							police2->move(2, arg); alreadymoved.second = true;
-						}
-					}
-				}
-			}
-		}
-		catch (...){
-			int tab[6] = { -3, -4, -5, 3, 4, 5 };
-			for (int i = 0; i < 6; i++)
-
-			{
-				if (!alreadymoved.first && arg.map[thief->pos_y + tab[i]][thief->pos_x].accessable()){
-					police->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y + tab[i])), this->police), arg);
-					alreadymoved.first = true;
-					break;
-				}
-				if (!alreadymoved.second && arg.map[thief->pos_y][thief->pos_x + tab[i]].accessable()){
-					police2->move(reconstrut_path_from_A_star_algorithm(A_star_algorithm(arg, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x + tab[i], thief->pos_y)), this->police2), arg);
-					alreadymoved.first = true;
-					break;
-				}
-			}
-		}
+		police->move(Automatic_move_police(police),*map);
+		police2->move(Automatic_move_police(police2), *map);
 	}
 	else{
-		thief->move(ManhatanDinstance(arg), arg);
+		thief->move(Automatic_move_thief(), *map);
 	}
 
 }
+int Playable_Characters::Automatic_move_police(Character* character){
+	if (!Can_character_move(character)) return false;
+	if (Are_police_neighbors_of_thief(character)){	
+		return Automatic_move_police_random(character);
+	}
+	try{ 
+		return reconstrut_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), character);
+	}
+	catch (...){
+		pair<int, int> target = Automatic_move_police_set_target(character);
 
-pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map, pair<int, int>& from, pair<int, int>& to){
+		try{
+			return reconstrut_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), target), character);
+		}
+		catch (...){
+			return Automatic_move_police_random(character);
+		}
+	}
+	
+}
+pair<int, int> Playable_Characters::Automatic_move_police_set_target(Character * character){
+	pair<int, int> target;
+
+
+	if (thief->pos_x < map->max_x / 2 && thief->pos_x < map->max_y / 2){//1
+		if (character == police)
+			target = pair<int, int>(thief->pos_x + 1, thief->pos_y);
+		else if (character == police2)
+			target = pair<int, int>(thief->pos_x, thief->pos_y - 1);
+		else throw exception();
+	}
+	else if (thief->pos_x < map->max_x / 2 && thief->pos_x >= map->max_y / 2){//3
+		if (character == police)
+			target = pair<int, int>(thief->pos_x + 1, thief->pos_y);
+		else if (character == police2)
+			target = pair<int, int>(thief->pos_x, thief->pos_y + 1);
+		else throw exception();
+	}
+	else if (thief->pos_x >= map->max_x / 2 && thief->pos_x < map->max_y / 2){//2
+		if (character == police)
+			target = pair<int, int>(thief->pos_x - 1, thief->pos_y);
+		else if (character == police2)
+			target = pair<int, int>(thief->pos_x, thief->pos_y + 1);
+		else throw exception();
+	}
+	else if (thief->pos_x >= map->max_x / 2 && thief->pos_x >= map->max_y / 2){//4
+		if (character == police)
+			target = pair<int, int>(thief->pos_x - 1, thief->pos_y);
+		else if (character == police2)
+			target = pair<int, int>(thief->pos_x, thief->pos_y - 1);
+		else throw exception();
+	}
+
+	for (int i = 0; !map->map[target.second][target.first].accessable();i++){
+		
+		if (i == 0 && target.second > 0 ){
+			target.second -= 1;
+			continue;
+		}
+		if (i == 1 && target.first < map->max_x - 1){
+			target.second += 1;
+			target.first += 1;
+			continue;
+		}
+		if (i == 2 && target.second < map->max_y - 1 ){
+			target.first -= 1;
+			target.second += 1;
+			continue;
+		}
+		if (i == 3 && target.first > 0 ){
+			target.second -= 1;
+			target.first -= 1;
+			continue;
+		}
+		
+		i = 0;
+	}
+	return target;
+}
+int Playable_Characters::Automatic_move_police_random(Character* police){
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> d(1, 4);
+	if (!Can_character_move(police)){
+		return false;
+	}
+	int direction;
+	while (true){
+		direction = d(gen);
+
+		if (direction == N &&  police->pos_y > 0 && map->map[police->pos_y - 1][police->pos_x].accessable()){
+			return N;
+		}
+		else if (direction == E && police->pos_x < map->max_x - 1 && map->map[police->pos_y][police->pos_x + 1].accessable()){
+			return E;
+		}
+		else if (direction == S && police->pos_y < map->max_y - 1 && map->map[police->pos_y + 1][police->pos_x].accessable()){
+			return S;
+		}
+		else if (direction == W && police->pos_x > 0 && map->map[police->pos_y][police->pos_x - 1].accessable()){
+			return W;
+		}	
+	}
+
+
+}
+bool Playable_Characters::Are_police_neighbors_of_thief(Character* arg){
+	if (arg->pos_y -1 == thief->pos_y && arg->pos_x == thief->pos_x){
+		return true;
+	}
+	else if (arg->pos_y +1 == thief->pos_y && arg->pos_x == thief->pos_x){
+		return true;
+	}
+	else if (arg->pos_y == thief->pos_y && arg->pos_x - 1 == thief->pos_x){
+		return true;
+	}
+	else if (arg->pos_y == thief->pos_y && arg->pos_x + 1 == thief->pos_x){
+		return true;
+	}
+	return false;
+
+}
+pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int, int>& from, pair<int, int>& to){
 	vector<pint> open_nodes;
 	vector<pint> closed_nodes;
 	vector<vector<pint>> come_from;
@@ -342,21 +245,21 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map,
 
 
 	open_nodes.push_back(pint(from.first, from.second)); // start node
-	for (int i = 0; i < map.max_y; i++){
-		for (int j = 0; j < map.max_x; j++){
-			if (!map.map[i][j].accessable()){
+	for (int i = 0; i < map->max_y; i++){
+		for (int j = 0; j < map->max_x; j++){
+			if (!(map->map[i][j].accessable())){
 				if (j == to.first && i == to.second);
 				else
 					closed_nodes.push_back(pint(j, i)); // impassable
 			}
 		}
 	}
-	for (int i = 0; i < map.max_y; i++){
+	for (int i = 0; i < map->max_y; i++){
 
 		fscore.push_back(vector<int>());
 		gscore.push_back(vector<int>());
 		come_from.push_back(vector<pint>());
-		for (int j = 0; j < map.max_x; j++){
+		for (int j = 0; j < map->max_x; j++){
 
 			fscore[i].push_back(INT_MAX);
 			gscore[i].push_back(INT_MAX);
@@ -376,7 +279,7 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(MAP& map,
 		open_nodes.erase(open_nodes.begin());
 		closed_nodes.push_back(current);
 
-		vector<pint> neighbor = map.neighbor(pint(current.first, current.second));
+		vector<pint> neighbor = map->neighbor(pint(current.first, current.second));
 		for (vector<pint>::iterator ite = neighbor.begin(); ite != neighbor.end(); ite++){
 
 			if (find(closed_nodes.begin(), closed_nodes.end(), *ite) != closed_nodes.end()){
@@ -401,15 +304,15 @@ int Playable_Characters::reconstrut_path_from_A_star_algorithm(pair<vector<vecto
 	pint current = arg.second;
 	pint last;
 	while (true){
-		cout << current.first << "." << current.second << " ";
+		//cout << current.first << "." << current.second << " ";
 		last = current;
 		current = arg.first[current.second][current.first];
 		if (current.second == character->pos_y && current.first == character->pos_x) {
 			if (current.second == last.second && current.first == last.first) return 0;
-			if (current.second == last.second - 1) return 3;
-			if (current.first == last.first + 1) return 4;
-			if (current.second == last.second + 1) return 1;
-			if (current.first == last.first - 1) return 2;
+			if (current.second == last.second - 1) return S;
+			if (current.first == last.first + 1) return W;
+			if (current.second == last.second + 1) return N;
+			if (current.first == last.first - 1) return E;
 		}
 	}
 }
@@ -417,30 +320,27 @@ int Playable_Characters::size_of_path_from_A_star_algorithm(pair<vector<vector<p
 	pint current = arg.second;
 	int size = 0;
 	while (true){
-		//cout << current.first << "." << current.second << " ";
 		current = arg.first[current.second][current.first];
 		size++;
 		if (current.second == goal.second && current.first == goal.first) {
-			//	cout << endl; 
 			return size;
 		}
-
 	}
 
 	return 0;
 }
-int Playable_Characters::ManhatanDinstance(MAP& map){
-	if (ManhatanDinstance_points(map) > 10){
-		if (thief->pos_y > 0 && map.map[thief->pos_y - 1][thief->pos_x].accessable()){
+int Playable_Characters::Automatic_move_thief(){
+	if (Automatic_move_thief_points() > 10){
+		if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable()){
 			if (thief->pos_y >= 13) return N;
 		}
-		if (thief->pos_y < map.max_y - 1 && map.map[thief->pos_y + 1][thief->pos_x].accessable()){
+		if (thief->pos_y < map->max_y - 1 && map->map[thief->pos_y + 1][thief->pos_x].accessable()){
 			if (thief->pos_y < 8) return S;
 		}
-		if (thief->pos_x < map.max_x - 1 && map.map[thief->pos_y][thief->pos_x + 1].accessable()){
+		if (thief->pos_x < map->max_x - 1 && map->map[thief->pos_y][thief->pos_x + 1].accessable()){
 			if (thief->pos_x < 10) return E;
 		}
-		if (thief->pos_x > 0 && map.map[thief->pos_y][thief->pos_x - 1].accessable()){
+		if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable()){
 			if (thief->pos_x > 20) return W;
 		}
 
@@ -448,83 +348,98 @@ int Playable_Characters::ManhatanDinstance(MAP& map){
 
 	pair<double, directions> bestscorewithdirection;
 	double tempscore;
-	if (thief->pos_y > 0 && map.map[thief->pos_y - 1][thief->pos_x].accessable()){
-		thief->move(N, map);
-		bestscorewithdirection.first = ManhatanDinstance_points(map);
-		bestscorewithdirection.first *= ManhatanDinstance_characterfactor(map);
+	if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable()){
+		thief->move(N, *map);
+		bestscorewithdirection.first = Automatic_move_thief_points();
+		bestscorewithdirection.first *= Automatic_move_thief_characterfactor();
 		bestscorewithdirection.second = N;
-		thief->move(S, map);
+		thief->move(S, *map);
 	}
-	if (thief->pos_y<map.max_y - 1 && map.map[thief->pos_y + 1][thief->pos_x].accessable()){
-		thief->move(S, map);
-		tempscore = ManhatanDinstance_points(map);
-		tempscore *= ManhatanDinstance_characterfactor(map);
+	if (thief->pos_y<map->max_y - 1 && map->map[thief->pos_y + 1][thief->pos_x].accessable()){
+		thief->move(S, *map);
+		tempscore = Automatic_move_thief_points();
+		tempscore *= Automatic_move_thief_characterfactor();
 		if (tempscore>bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = S;
 		}
-		thief->move(N, map);
+		thief->move(N, *map);
 	}
-	if (thief->pos_x<map.max_x - 1 && map.map[thief->pos_y][thief->pos_x + 1].accessable()){
-		thief->move(E, map);
-		tempscore = ManhatanDinstance_points(map);
-		tempscore *= ManhatanDinstance_characterfactor(map);
+	if (thief->pos_x<map->max_x - 1 && map->map[thief->pos_y][thief->pos_x + 1].accessable()){
+		thief->move(E, *map);
+		tempscore = Automatic_move_thief_points();
+		tempscore *= Automatic_move_thief_characterfactor();
 		if (tempscore>bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = E;
 		}
-		thief->move(W, map);
+		thief->move(W, *map);
 	}
-	if (thief->pos_x > 0 && map.map[thief->pos_y][thief->pos_x - 1].accessable()){
-		thief->move(W, map);
-		tempscore = ManhatanDinstance_points(map);
-		tempscore *= ManhatanDinstance_characterfactor(map);
+	if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable()){
+		thief->move(W, *map);
+		tempscore = Automatic_move_thief_points();
+		tempscore *= Automatic_move_thief_characterfactor();
 		if (tempscore > bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = W;
 		}
-		thief->move(E, map);
+		thief->move(E,*map);
 	}
 	return bestscorewithdirection.second;
 }
-int Playable_Characters::ManhatanDinstance_points(MAP& map){
+int Playable_Characters::Automatic_move_thief_points(){
 	int distance = 0;
-
-	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(police->pos_x, police->pos_y));
-	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(map, pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(police2->pos_x, police2->pos_y));
-
+	try{
+		distance += size_of_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(police->pos_x, police->pos_y));
+	}
+	catch (...){
+		distance += heuristic_cost_estimate(pair<int, int>(police->pos_x, police->pos_y), pair<int, int>(thief->pos_x, thief->pos_y));
+	}
+	try{
+	distance += size_of_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(police2->pos_x, police2->pos_y));
+	}
+	catch (...){
+		distance += heuristic_cost_estimate(pair<int, int>(police2->pos_x, police2->pos_y), pair<int, int>(thief->pos_x, thief->pos_y));
+	}
 	return distance;
 }
-double Playable_Characters::ManhatanDinstance_characterfactor(MAP& map){
+double Playable_Characters::Automatic_move_thief_characterfactor(){
 	double x = thief->pos_x;
 	double y = thief->pos_y;
-	if (x > map.max_x / 2) x = (x - (x - map.max_x / 2) * 2);
-	if (y > map.max_y / 2) x = (y - (y - map.max_y / 2) * 2);
+	if (x > map->max_x / 2) x = (x - (x - map->max_x / 2) * 2);
+	if (y > map->max_y / 2) x = (y - (y - map->max_y / 2) * 2);
 	if (x == 0) x = 1;
 	if (y == 0) y = 1;
 	return (((2 * x - 1) / x) + ((2 * y - 1) / y));
 }
-CheckWinEnum Playable_Characters::checkwincondition(int turns, MAP& map){
+CheckWinEnum Playable_Characters::checkwincondition(int turns){
 	if (turns<=0){
 		cout << "lose police";
 		return winthief;
 	}
 	else
 	{
-		if (thief->pos_y > 0 && map.map[thief->pos_y - 1][thief->pos_x].accessable()){
+		if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable()){
 			return Nothing;
 		}
-		if (thief->pos_y < map.max_y - 1 && map.map[thief->pos_y + 1][thief->pos_x].accessable()){
+		if (thief->pos_y < map->max_y - 1 && map->map[thief->pos_y + 1][thief->pos_x].accessable()){
 			return Nothing;
 		}
-		if (thief->pos_x < map.max_x - 1 && map.map[thief->pos_y][thief->pos_x + 1].accessable()){
+		if (thief->pos_x < map->max_x - 1 && map->map[thief->pos_y][thief->pos_x + 1].accessable()){
 			return Nothing;
 		}
-		if (thief->pos_x > 0 && map.map[thief->pos_y][thief->pos_x - 1].accessable()){
+		if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable()){
 			return Nothing;
 		}
 		cout << "win police";
 		return winpolice;
 	}
 	return Nothing;
+}
+Playable_Characters Playable_Characters::operator=(Playable_Characters& other){
+	map = other.map;
+	thief= other.thief;
+	police = other.police;
+	police2 = other.police2;
+	return *this;
 }

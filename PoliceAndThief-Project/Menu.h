@@ -1,3 +1,6 @@
+#ifndef MENU_H
+#define MENU_H
+
 class Graphics;
 #include <SDL.h>
 #include <SDL_ttf.h>
@@ -20,4 +23,4 @@ private:
 	SDL_Color color[NUMMENU];
 	SDL_Color color_sel[NUMMENU];
 };
-
+#endif

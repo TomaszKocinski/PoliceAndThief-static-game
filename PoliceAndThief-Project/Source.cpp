@@ -1,4 +1,4 @@
-//#include "SDL.h"
+#pragma once
 #include <SDL.h>
 #include "Game.h"
 int main(int argc, char* argv[])

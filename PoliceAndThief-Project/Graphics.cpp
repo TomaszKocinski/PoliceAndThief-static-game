@@ -1,13 +1,9 @@
-
-#include <SDL.h>
+#pragma once
 #include <SDL_image.h>
 #include "Graphics.h"
 
 #include <iostream>
 
-/* Graphics class
-* Holds all information dealing with graphics for the game
-*/
 
 Graphics::Graphics(int width_arg, int height_arg, double scale_arg) {
 	this->height = height_arg;

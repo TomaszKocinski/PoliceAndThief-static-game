@@ -1,5 +1,6 @@
+#pragma once
 #include <SDL.h>
-//#include <SDL_ttf.h>
+
 #include "map.h"
 #include "game.h"
 #include "Graphics.h"
@@ -65,7 +66,7 @@ void Game::gameLoop() {
 	directionarrows[1] = Sprite(graphics, "images/right.png", 0, 0, 64, 56, 1, 1);
 	directionarrows[2] = Sprite(graphics, "images/down.png", 0, 0, 56, 64, 1, 1);
 	directionarrows[3] = Sprite(graphics, "images/left.png", 0, 0, 64, 56, 1, 1);
-	Playable_Characters PC(graphics, *game_board);
+	Playable_Characters PC(graphics, game_board);
 
 	turns = MAXTURNS;
 	Character* character = PC.thief;
@@ -81,21 +82,20 @@ void Game::gameLoop() {
 			if (choice_from_menu == 0) return;
 			if (choice_from_menu == 2) {
 				Player_play_police = true;
-				character = PC.police;
-				PC = Playable_Characters(graphics, *game_board);
-				character = PC.police;
+				game_board = new MAP();
+				PC = Playable_Characters(graphics, game_board);
+				character = PC.thief;
+				change_character = true;
 				turns = MAXTURNS + 1;
-
 				state = Nothing;
 			}
 			if (choice_from_menu == 3){
 				Player_play_police = false;
-				state = Nothing;
 				game_board = new MAP();
-				PC = Playable_Characters(graphics, *game_board);
+				PC = Playable_Characters(graphics, game_board);
 				character = PC.thief;
 				turns = MAXTURNS + 1;
-
+				state = Nothing;
 			}
 			if (choice_from_menu == 4) return;
 			delete menu;
@@ -132,8 +132,9 @@ void Game::gameLoop() {
 			if (choice_from_menu == 2) {
 				Player_play_police = true;
 				game_board = new MAP();
-				PC = Playable_Characters(graphics, *game_board);
-				character = PC.police;
+				PC = Playable_Characters(graphics, game_board);
+				character = PC.thief;
+				change_character = true;
 				turns = MAXTURNS + 1;
 				update(character, PC, *game_board);
 				state = Nothing;
@@ -141,7 +142,7 @@ void Game::gameLoop() {
 			if (choice_from_menu == 3){
 				Player_play_police = false;
 				game_board = new MAP();
-				PC = Playable_Characters(graphics, *game_board);
+				PC = Playable_Characters(graphics, game_board);
 				character = PC.thief;
 				turns = MAXTURNS + 1;
 				update(character, PC, *game_board);
@@ -186,20 +187,31 @@ void Game::gameLoop() {
 			}
 		}
 		if (change_character){
-			if (state == Nothing) state = PC.checkwincondition(turns, *game_board);
+			
+			if (state == Nothing) state = PC.checkwincondition(turns);
 			if (!Player_play_police){
-				PC.Automatic_move(*game_board, true);
-				state = PC.checkwincondition(turns, *game_board);
+				PC.Automatic_move(true);
+				state = PC.checkwincondition(turns);
 				update(character, PC, *game_board);
 			}
 			else {
-				if (character == PC.police2) {
-					if (state == Nothing)state = PC.checkwincondition(turns, *game_board);
-					PC.Automatic_move(*game_board, false);
+				if (character == PC.police2 || character==PC.thief) {
+				
+					if (state == Nothing)state = PC.checkwincondition(turns);
+					PC.Automatic_move(false);
 					update(character, PC, *game_board);
-					if (state == Nothing)state = PC.checkwincondition(turns, *game_board);
+					if (state == Nothing)state = PC.checkwincondition(turns);
 					character = PC.police;
+					for (int i = 0; i < game_board->max_y; i++){
+						for (int j = 0; j < game_board->max_x; j++){
+							if (!(game_board->map[i][j].accessable()) ){
+								if (i%2!=1 && j%2!=1)
+								cout << j << "." << i << " ";
 
+							}
+						}
+					}
+					cout << endl;
 				}
 				else if (character == PC.police)
 					character = PC.police2;

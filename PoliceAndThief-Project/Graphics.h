@@ -1,6 +1,6 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
-
+#include <SDL_image.h>
 #include <map>
 #include <string>
 struct SDL_Window;
