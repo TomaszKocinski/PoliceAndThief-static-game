@@ -17,10 +17,6 @@ public:
 		if (!passable) return false;
 		if (!free) return false;
 		return true;
-		/*if (passable && free) {
-			return true;
-		}
-		return false;*/
 
 	} 
 };

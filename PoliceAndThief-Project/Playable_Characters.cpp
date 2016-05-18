@@ -6,9 +6,6 @@
 #include <random>
 #include <iostream>
 #include <map>
-#include <unordered_map>
-#include <climits>
-#include <algorithm>
 
 using namespace std;
 typedef pair<int, int> pint;
@@ -27,42 +24,6 @@ Playable_Characters::Playable_Characters(Graphics& graphics, MAP* game_board){
 	police2 = new Character(graphics, "images/police2.png", 0, 0, 40, 40, 26, 35, 4, 4, *game_board);
 };
 
-bool* Playable_Characters::GetAccessAbleNeighbors(){
-	bool* neighbors = new bool[4]();
-	if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable() && map->cangetto(pair<int, int>(thief->pos_x, thief->pos_y - 1))){
-		neighbors[0] = true;
-	}
-	if (thief->pos_y < map->max_y - 1 && map->map[thief->pos_y + 1][thief->pos_x].accessable() && map->cangetto(pair<int, int>(thief->pos_x, thief->pos_y + 1))){
-		neighbors[2] = true;
-	}
-	if (thief->pos_x < map->max_x - 1 && map->map[thief->pos_y][thief->pos_x + 1].accessable() && map->cangetto(pair<int, int>(thief->pos_x + 1, thief->pos_y))){
-		neighbors[1] = true;
-	}
-	if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable() && map->cangetto(pair<int, int>(thief->pos_x - 1, thief->pos_y))){
-		neighbors[3] = true;
-	}
-	return neighbors;
-}
-bool* Playable_Characters::GetNeighbors(){
-	bool* neighbors = new bool[4];
-	if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable()){
-		neighbors[0] = true;
-	}
-	else neighbors[0] = false;
-	if (thief->pos_y < map->max_y  && map->map[thief->pos_y + 1][thief->pos_x].accessable()){
-		neighbors[2] = true;
-	}
-	else neighbors[2] = false;
-	if (thief->pos_x < map->max_x  && map->map[thief->pos_y][thief->pos_x + 1].accessable()){
-		neighbors[1] = true;
-	}
-	else neighbors[1] = false;
-	if (thief->pos_x > 0 && map->map[thief->pos_y][thief->pos_x - 1].accessable()){
-		neighbors[3] = true;
-	}
-	else neighbors[3] = false;
-	return neighbors;
-}
 int heuristic_cost_estimate(pair<int, int> start, pair<int, int> goal){
 
 	int dest = 0,
@@ -272,7 +233,14 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int,
 
 	if (from.first == to.first && from.second == to.second) return pair<vector<vector<pint>>, pint>(come_from, *open_nodes.begin());
 	while (!open_nodes.empty()){
-		pint current = *open_nodes.begin();
+
+		pint current; 
+		vector<pint>::iterator smallest = open_nodes.begin();
+		for (vector<pint>::iterator ite = open_nodes.begin(); ite != open_nodes.end(); ite++){
+			if (fscore[ite->second][ite->first] < fscore[smallest->second][smallest->first])
+				smallest = ite;
+		}
+		current = *smallest;
 		if (current.first == to.first && current.second == to.second){
 			return pair<vector<vector<pint>>, pint>(come_from, current);
 		}
@@ -285,7 +253,11 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int,
 			if (find(closed_nodes.begin(), closed_nodes.end(), *ite) != closed_nodes.end()){
 				continue;
 			}
-			int temp_g_score = gscore[ite->second][ite->first] + 1;
+			int temp_g_score;
+			if (ite->second == police->pos_y - 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x + 1 || ite->second == police->pos_y + 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x - 1 || ite->second == police2->pos_y - 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x + 1 || ite->second == police2->pos_y + 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x - 1)
+				temp_g_score = gscore[ite->second][ite->first] + 2;
+			else 
+				temp_g_score = gscore[ite->second][ite->first] + 1;
 			int temp_f_score = heuristic_cost_estimate(pint(ite->first, ite->second), pint(to.first, to.second));
 			if (find(open_nodes.begin(), open_nodes.end(), *ite) == open_nodes.end()){
 				open_nodes.push_back(*ite);

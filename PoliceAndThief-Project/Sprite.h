@@ -2,7 +2,6 @@
 #define SPRITE_H
 #include <string>
 #include <SDL.h>
-#include <vector>
 #include "map.h"
 using namespace std;
 class Graphics;

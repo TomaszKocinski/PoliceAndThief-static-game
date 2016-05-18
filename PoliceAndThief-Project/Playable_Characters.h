@@ -19,8 +19,7 @@ public:
 	MAP* map;
 	void Automatic_move(bool);
 	pair<vector<vector<pair<int, int>>>, pair<int, int>> A_star_algorithm(pair<int, int>&, pair<int, int>&);
-	bool* GetAccessAbleNeighbors();
-	bool* GetNeighbors();
+
 	int reconstrut_path_from_A_star_algorithm(pair<vector<vector<pair<int, int>>>, pair<int, int>>, Character*);
 	int size_of_path_from_A_star_algorithm(pair<vector<vector<pair<int, int>>>, pair<int, int>> arg, pair<int, int>);
 	int Automatic_move_police(Character*);

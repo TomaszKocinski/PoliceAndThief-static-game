@@ -1,17 +1,14 @@
 #pragma once
-#include <SDL.h>
-
 #include "map.h"
 #include "game.h"
 #include "Graphics.h"
 #include "input.h"
 #include "Playable_Characters.h"
 #include "Menu.h"
-#include <algorithm>
 #include <string>
 #include <iostream>
-#include <SDL_ttf.h>
 #include <sstream>
+#include <SDL.h>
 enum CheckWinEnum
 {
 	Nothing, winpolice, losepolice, winthief, losethief
@@ -74,13 +71,13 @@ void Game::gameLoop() {
 	bool Player_play_police;
 	Menu* menu;
 	int choice_from_menu;
-	CheckWinEnum state = losethief;
+	CheckWinEnum state = losepolice; // must be anything other than nothing to enter menu
 	while (true) {
 		if (state != Nothing){
 			menu = new Menu(false, state);
 			choice_from_menu = menu->showmenu(graphics);
 			if (choice_from_menu == 0) return;
-			if (choice_from_menu == 2) {
+			else if (choice_from_menu == 2) {
 				Player_play_police = true;
 				game_board = new MAP();
 				PC = Playable_Characters(graphics, game_board);
@@ -89,7 +86,7 @@ void Game::gameLoop() {
 				turns = MAXTURNS + 1;
 				state = Nothing;
 			}
-			if (choice_from_menu == 3){
+			else if (choice_from_menu == 3){
 				Player_play_police = false;
 				game_board = new MAP();
 				PC = Playable_Characters(graphics, game_board);
@@ -97,7 +94,8 @@ void Game::gameLoop() {
 				turns = MAXTURNS + 1;
 				state = Nothing;
 			}
-			if (choice_from_menu == 4) return;
+			else 
+				return;
 			delete menu;
 			initGUI();
 			updateGUI(character, PC, *game_board);
@@ -196,22 +194,11 @@ void Game::gameLoop() {
 			}
 			else {
 				if (character == PC.police2 || character==PC.thief) {
-				
 					if (state == Nothing)state = PC.checkwincondition(turns);
 					PC.Automatic_move(false);
 					update(character, PC, *game_board);
 					if (state == Nothing)state = PC.checkwincondition(turns);
 					character = PC.police;
-					for (int i = 0; i < game_board->max_y; i++){
-						for (int j = 0; j < game_board->max_x; j++){
-							if (!(game_board->map[i][j].accessable()) ){
-								if (i%2!=1 && j%2!=1)
-								cout << j << "." << i << " ";
-
-							}
-						}
-					}
-					cout << endl;
 				}
 				else if (character == PC.police)
 					character = PC.police2;
