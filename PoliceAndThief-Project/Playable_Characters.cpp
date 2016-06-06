@@ -17,13 +17,57 @@ enum directions
 {
 	N = 1, E = 2, S = 3, W = 4
 };
+PoliceLastMove::PoliceLastMove(int arg_x1, int arg_x2, int arg_y1, int arg_y2){
+	x1 = arg_x1;
+	x2 = arg_x2;
+	y1 = arg_y1;
+	y2 = arg_y2;
+}
 Playable_Characters::Playable_Characters(Graphics& graphics, MAP* game_board){
 	map = game_board;
 	thief = new Character(graphics, "images/thief.png", 0, 0, 40, 40, 26, 35, 0, 0, *game_board);
 	police = new Character(graphics, "images/police.png", 0, 0, 40, 40, 26, 35, 2, 2, *game_board);
 	police2 = new Character(graphics, "images/police2.png", 0, 0, 40, 40, 26, 35, 4, 4, *game_board);
+	PLM = NULL;
 };
-
+pair<directions, directions> PoliceLastMove::update(int newx1, int newx2, int newy1, int newy2){
+	pair<directions, directions> pair;
+	if (newx1 == x1 - 1 && newy1 == y1){
+		pair.first = W;
+	}
+	else if (newx1 == x1 + 1 && newy1 == y1){
+		pair.first = E;
+	}
+	else if (newx1 == x1 && newy1 == y1 -1 ){
+		pair.first = N;
+	}
+	else if (newx1 == x1 && newy1 == y1 +1){
+		pair.first = S;
+	}
+	else {
+		throw exception();
+	}
+	if (newx2 == x2 - 1 && newy2 == y2){
+		pair.second = W;
+	}
+	else if (newx2 == x2 + 1 && newy2 == y2){
+		pair.second = E;
+	}
+	else if (newx2 == x2 && newy2 == y2 - 1){
+		pair.second = N;
+	}
+	else if (newx2 == x2 && newy2 == y2 + 1){
+		pair.second = S;
+	}
+	else {
+		throw exception();
+	}
+	x1 = newx1;
+	x2 = newx2;
+	y1 = newy1;
+	y2 = newy2;
+	return pair;
+}
 int heuristic_cost_estimate(pair<int, int> start, pair<int, int> goal){
 
 	int dest = 0,
@@ -80,6 +124,75 @@ int Playable_Characters::Automatic_move_police(Character* character){
 	if (Are_police_neighbors_of_thief(character)){	
 		return Automatic_move_police_random(character);
 	}
+
+	
+	Character* character_to_be_not_close_to;
+	if (character == police)
+		character_to_be_not_close_to = police2;
+	else
+		character_to_be_not_close_to = police;
+	int distance_to_ctbnct = 0, distance_to_thief = 0;
+	try{
+		distance_to_ctbnct += size_of_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(character_to_be_not_close_to->pos_x, character_to_be_not_close_to->pos_y)), pair<int, int>(character->pos_x, character->pos_y));
+	}
+	catch (...){
+		distance_to_ctbnct += heuristic_cost_estimate(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(character_to_be_not_close_to->pos_x, character_to_be_not_close_to->pos_y));
+	}
+
+	try{
+		distance_to_thief += size_of_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(character->pos_x, character->pos_y));
+	}
+	catch (...){
+		distance_to_thief += heuristic_cost_estimate(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(thief->pos_x, thief->pos_y));
+	}
+	
+	if (distance_to_ctbnct<distance_to_thief && distance_to_ctbnct <4){
+		pair<int, directions> bestscorewithdirection;
+		bestscorewithdirection.first = INT_MIN;
+		
+		int tempscore;
+		if (character->pos_y > 0 && map->map[character->pos_y - 1][character->pos_x].accessable()){
+			character->move(N, *map);
+			bestscorewithdirection.first = Automatic_move_police_points(character);
+
+			bestscorewithdirection.second = N;
+			character->move(S, *map);
+		}
+		if (character->pos_y<map->max_y - 1 && map->map[character->pos_y + 1][character->pos_x].accessable()){
+			character->move(S, *map);
+			tempscore = Automatic_move_police_points(character);
+
+			if (tempscore>bestscorewithdirection.first){
+				bestscorewithdirection.first = tempscore;
+				bestscorewithdirection.second = S;
+			}
+			character->move(N, *map);
+		}
+		if (character->pos_x<map->max_x - 1 && map->map[character->pos_y][character->pos_x + 1].accessable()){
+			character->move(E, *map);
+			tempscore = Automatic_move_police_points(character);
+			if (tempscore>bestscorewithdirection.first){
+				bestscorewithdirection.first = tempscore;
+				bestscorewithdirection.second = E;
+			}
+			character->move(W, *map);
+		}
+		if (character->pos_x > 0 && map->map[character->pos_y][character->pos_x - 1].accessable()){
+			character->move(W, *map);
+			tempscore = Automatic_move_police_points(character);
+			if (tempscore > bestscorewithdirection.first){
+				bestscorewithdirection.first = tempscore;
+				bestscorewithdirection.second = W;
+			}
+			character->move(E, *map);
+		}
+		if (bestscorewithdirection.first!=INT_MIN)
+			return bestscorewithdirection.second;
+
+	}
+
+
+
 	try{ 
 		return reconstrut_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), character);
 	}
@@ -127,9 +240,20 @@ pair<int, int> Playable_Characters::Automatic_move_police_set_target(Character *
 			target = pair<int, int>(thief->pos_x, thief->pos_y - 1);
 		else throw exception();
 	}
+	/*if (target.first<0 && target.first>map->max_y - 1){
+		target.first = thief->pos_y;
+	}
+	if (target.second<0 && target.second>map->max_x - 1){
+		target.second = thief->pos_x;
+	}*/
 
 	for (int i = 0; !map->map[target.second][target.first].accessable();i++){
-		
+	/*	if (target.first<=0 && target.first>map->max_y - 1){
+			target.first = thief->pos_y+1;
+		}
+		if (target.second<=0 && target.second>map->max_x - 1){
+			target.second = thief->pos_x+1;
+		}*/
 		if (i == 0 && target.second > 0 ){
 			target.second -= 1;
 			continue;
@@ -179,6 +303,29 @@ int Playable_Characters::Automatic_move_police_random(Character* police){
 		}	
 	}
 
+
+}
+int Playable_Characters::Automatic_move_police_points(Character* character){
+	Character* character_to_be_not_close_to;
+	if (character == police) 
+		character_to_be_not_close_to = police2;
+	else 
+		character_to_be_not_close_to = police;
+	int distance_to_ctbnct = 0, distance_to_thief = 0;
+	try{
+		distance_to_ctbnct += size_of_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(character_to_be_not_close_to->pos_x, character_to_be_not_close_to->pos_y)), pair<int, int>(character->pos_x, character->pos_y));
+	}
+	catch (...){
+		distance_to_ctbnct += heuristic_cost_estimate(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(character_to_be_not_close_to->pos_x, character_to_be_not_close_to->pos_y));
+	}
+
+	try{
+		distance_to_thief += size_of_path_from_A_star_algorithm(A_star_algorithm(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(thief->pos_x, thief->pos_y)), pair<int, int>(character->pos_x, character->pos_y));
+	}
+	catch (...){
+		distance_to_thief += heuristic_cost_estimate(pair<int, int>(character->pos_x, character->pos_y), pair<int, int>(thief->pos_x, thief->pos_y));
+	}
+	return distance_to_ctbnct - distance_to_thief;
 
 }
 bool Playable_Characters::Are_police_neighbors_of_thief(Character* arg){
@@ -235,8 +382,9 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int,
 	while (!open_nodes.empty()){
 
 		pint current; 
-		vector<pint>::iterator smallest = open_nodes.begin();
-		for (vector<pint>::iterator ite = open_nodes.begin(); ite != open_nodes.end(); ite++){
+		vector<pint>::iterator smallest = open_nodes.begin(); 
+		vector<pint>::iterator ite;
+		for (ite = open_nodes.begin(); ite != open_nodes.end(); ite++){
 			if (fscore[ite->second][ite->first] < fscore[smallest->second][smallest->first])
 				smallest = ite;
 		}
@@ -244,19 +392,22 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int,
 		if (current.first == to.first && current.second == to.second){
 			return pair<vector<vector<pint>>, pint>(come_from, current);
 		}
-		open_nodes.erase(open_nodes.begin());
+		open_nodes.erase(smallest);
 		closed_nodes.push_back(current);
 
 		vector<pint> neighbor = map->neighbor(pint(current.first, current.second));
 		for (vector<pint>::iterator ite = neighbor.begin(); ite != neighbor.end(); ite++){
-
+			if (!map->map[ite->second][ite->first].accessable() ){
+				if (!(ite->first == to.first && ite->second == to.second))
+					continue;
+			}
 			if (find(closed_nodes.begin(), closed_nodes.end(), *ite) != closed_nodes.end()){
 				continue;
 			}
 			int temp_g_score;
-			if (ite->second == police->pos_y - 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x + 1 || ite->second == police->pos_y + 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x - 1 || ite->second == police2->pos_y - 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x + 1 || ite->second == police2->pos_y + 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x - 1)
-				temp_g_score = gscore[ite->second][ite->first] + 2;
-			else 
+			//if (ite->second == police->pos_y - 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x + 1 || ite->second == police->pos_y + 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x - 1 || ite->second == police2->pos_y - 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x + 1 || ite->second == police2->pos_y + 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x - 1)
+			//	temp_g_score = gscore[ite->second][ite->first] + 2;
+			//else 
 				temp_g_score = gscore[ite->second][ite->first] + 1;
 			int temp_f_score = heuristic_cost_estimate(pint(ite->first, ite->second), pint(to.first, to.second));
 			if (find(open_nodes.begin(), open_nodes.end(), *ite) == open_nodes.end()){
@@ -302,6 +453,15 @@ int Playable_Characters::size_of_path_from_A_star_algorithm(pair<vector<vector<p
 	return 0;
 }
 int Playable_Characters::Automatic_move_thief(){
+	pair<directions, directions> pair_of_direction;
+	if (PLM == NULL) {
+		PLM = new PoliceLastMove(police->pos_x, police2->pos_x, police->pos_y, police2->pos_y);
+		pair_of_direction.first = N;
+		pair_of_direction.second = N;
+	}
+	else {
+		pair_of_direction=PLM->update(police->pos_x, police2->pos_x, police->pos_y, police2->pos_y);
+	}
 	if (Automatic_move_thief_points() > 10){
 		if (thief->pos_y > 0 && map->map[thief->pos_y - 1][thief->pos_x].accessable()){
 			if (thief->pos_y >= 13) return N;
@@ -324,6 +484,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(N, *map);
 		bestscorewithdirection.first = Automatic_move_thief_points();
 		bestscorewithdirection.first *= Automatic_move_thief_characterfactor();
+		if (pair_of_direction.first == S) bestscorewithdirection.first *= 0.8;
+		if (pair_of_direction.second== S) bestscorewithdirection.first *= 0.8;
 		bestscorewithdirection.second = N;
 		thief->move(S, *map);
 	}
@@ -331,6 +493,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(S, *map);
 		tempscore = Automatic_move_thief_points();
 		tempscore *= Automatic_move_thief_characterfactor();
+		if (pair_of_direction.first == N) tempscore *= 0.8;
+		if (pair_of_direction.second == N) tempscore *= 0.8;
 		if (tempscore>bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = S;
@@ -341,6 +505,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(E, *map);
 		tempscore = Automatic_move_thief_points();
 		tempscore *= Automatic_move_thief_characterfactor();
+		if (pair_of_direction.first == W) tempscore *= 0.8;
+		if (pair_of_direction.second == W) tempscore *= 0.8;
 		if (tempscore>bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = E;
@@ -351,6 +517,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(W, *map);
 		tempscore = Automatic_move_thief_points();
 		tempscore *= Automatic_move_thief_characterfactor();
+		if (pair_of_direction.first == E) tempscore *= 0.8;
+		if (pair_of_direction.second == E) tempscore *= 0.8;
 		if (tempscore > bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = W;

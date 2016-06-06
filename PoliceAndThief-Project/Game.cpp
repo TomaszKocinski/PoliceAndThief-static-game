@@ -81,6 +81,7 @@ void Game::gameLoop() {
 				Player_play_police = true;
 				game_board = new MAP();
 				PC = Playable_Characters(graphics, game_board);
+				PC.PLM = NULL;
 				character = PC.thief;
 				change_character = true;
 				turns = MAXTURNS + 1;
@@ -131,6 +132,7 @@ void Game::gameLoop() {
 				Player_play_police = true;
 				game_board = new MAP();
 				PC = Playable_Characters(graphics, game_board);
+				PC.PLM = NULL;
 				character = PC.thief;
 				change_character = true;
 				turns = MAXTURNS + 1;
@@ -197,7 +199,8 @@ void Game::gameLoop() {
 					if (state == Nothing)state = PC.checkwincondition(turns);
 					PC.Automatic_move(false);
 					update(character, PC, *game_board);
-					if (state == Nothing)state = PC.checkwincondition(turns);
+					//if (state == Nothing)
+						state = PC.checkwincondition(turns);
 					character = PC.police;
 				}
 				else if (character == PC.police)
@@ -207,7 +210,9 @@ void Game::gameLoop() {
 			}
 			change_character = false;
 
+
 		}
+		state = PC.checkwincondition(turns);
 		draw(graphics, PC);
 	}
 }
