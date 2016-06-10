@@ -10,7 +10,7 @@ Graphics::Graphics(int width_arg, int height_arg, double scale_arg) {
 	this->width = width_arg;
 	this->scale = scale_arg;
 	SDL_CreateWindowAndRenderer(width, height, 0, &this->_window, &this->_renderer);
-	SDL_SetWindowTitle(this->_window, "Police and Thief");
+	SDL_SetWindowTitle(this->_window, "Policjanci i zlodzieje");
 	SDL_RenderSetLogicalSize(_renderer, width*scale, height*scale);
 }
 

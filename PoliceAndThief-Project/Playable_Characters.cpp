@@ -124,8 +124,6 @@ int Playable_Characters::Automatic_move_police(Character* character){
 	if (Are_police_neighbors_of_thief(character)){	
 		return Automatic_move_police_random(character);
 	}
-
-	
 	Character* character_to_be_not_close_to;
 	if (character == police)
 		character_to_be_not_close_to = police2;
@@ -370,12 +368,11 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int,
 		for (int j = 0; j < map->max_x; j++){
 
 			fscore[i].push_back(INT_MAX);
-			gscore[i].push_back(INT_MAX);
+			gscore[i].push_back(0);
 			come_from[i].push_back(pint(-1, -1));
 		}
 	}
 	fscore[from.second][from.first] = heuristic_cost_estimate(pint(from.first, from.second), pint(to.first, to.second));
-	gscore[from.second][from.first] = 0;
 	come_from[from.second][from.first] = pint(from.first, from.second);
 
 	if (from.first == to.first && from.second == to.second) return pair<vector<vector<pint>>, pint>(come_from, *open_nodes.begin());
@@ -404,11 +401,7 @@ pair<vector<vector<pint>>, pint> Playable_Characters::A_star_algorithm(pair<int,
 			if (find(closed_nodes.begin(), closed_nodes.end(), *ite) != closed_nodes.end()){
 				continue;
 			}
-			int temp_g_score;
-			//if (ite->second == police->pos_y - 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x + 1 || ite->second == police->pos_y + 1 && ite->first == police->pos_x || ite->second == police->pos_y && ite->first == police->pos_x - 1 || ite->second == police2->pos_y - 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x + 1 || ite->second == police2->pos_y + 1 && ite->first == police2->pos_x || ite->second == police2->pos_y && ite->first == police2->pos_x - 1)
-			//	temp_g_score = gscore[ite->second][ite->first] + 2;
-			//else 
-				temp_g_score = gscore[ite->second][ite->first] + 1;
+			int temp_g_score = gscore[current.second][current.first] + 1;
 			int temp_f_score = heuristic_cost_estimate(pint(ite->first, ite->second), pint(to.first, to.second));
 			if (find(open_nodes.begin(), open_nodes.end(), *ite) == open_nodes.end()){
 				open_nodes.push_back(*ite);
@@ -454,10 +447,12 @@ int Playable_Characters::size_of_path_from_A_star_algorithm(pair<vector<vector<p
 }
 int Playable_Characters::Automatic_move_thief(){
 	pair<directions, directions> pair_of_direction;
+	bool firstturn = false;
 	if (PLM == NULL) {
 		PLM = new PoliceLastMove(police->pos_x, police2->pos_x, police->pos_y, police2->pos_y);
 		pair_of_direction.first = N;
 		pair_of_direction.second = N;
+		firstturn = true;
 	}
 	else {
 		pair_of_direction=PLM->update(police->pos_x, police2->pos_x, police->pos_y, police2->pos_y);
@@ -484,8 +479,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(N, *map);
 		bestscorewithdirection.first = Automatic_move_thief_points();
 		bestscorewithdirection.first *= Automatic_move_thief_characterfactor();
-		if (pair_of_direction.first == S) bestscorewithdirection.first *= 0.8;
-		if (pair_of_direction.second== S) bestscorewithdirection.first *= 0.8;
+		if (pair_of_direction.first == S && !firstturn) bestscorewithdirection.first *= 0.8;
+		if (pair_of_direction.second == S && !firstturn) bestscorewithdirection.first *= 0.8;
 		bestscorewithdirection.second = N;
 		thief->move(S, *map);
 	}
@@ -493,8 +488,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(S, *map);
 		tempscore = Automatic_move_thief_points();
 		tempscore *= Automatic_move_thief_characterfactor();
-		if (pair_of_direction.first == N) tempscore *= 0.8;
-		if (pair_of_direction.second == N) tempscore *= 0.8;
+		if (pair_of_direction.first == N && !firstturn) tempscore *= 0.8;
+		if (pair_of_direction.second == N && !firstturn) tempscore *= 0.8;
 		if (tempscore>bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = S;
@@ -505,8 +500,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(E, *map);
 		tempscore = Automatic_move_thief_points();
 		tempscore *= Automatic_move_thief_characterfactor();
-		if (pair_of_direction.first == W) tempscore *= 0.8;
-		if (pair_of_direction.second == W) tempscore *= 0.8;
+		if (pair_of_direction.first == W && !firstturn) tempscore *= 0.8;
+		if (pair_of_direction.second == W && !firstturn) tempscore *= 0.8;
 		if (tempscore>bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = E;
@@ -517,8 +512,8 @@ int Playable_Characters::Automatic_move_thief(){
 		thief->move(W, *map);
 		tempscore = Automatic_move_thief_points();
 		tempscore *= Automatic_move_thief_characterfactor();
-		if (pair_of_direction.first == E) tempscore *= 0.8;
-		if (pair_of_direction.second == E) tempscore *= 0.8;
+		if (pair_of_direction.first == E && !firstturn) tempscore *= 0.8;
+		if (pair_of_direction.second == E && !firstturn) tempscore *= 0.8;
 		if (tempscore > bestscorewithdirection.first){
 			bestscorewithdirection.first = tempscore;
 			bestscorewithdirection.second = W;

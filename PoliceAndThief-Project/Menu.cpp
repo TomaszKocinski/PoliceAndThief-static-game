@@ -7,7 +7,7 @@ enum CheckWinEnum
 {
 	Nothing, winpolice, losepolice, winthief, losethief
 };
-const char* Menu::labels[NUMMENU] = { "1: Continue", "2: New Game - as Police", "3: New Game - as Thief", "4: Exit", "Winner: Thief", "Winner: Police" };
+const char* Menu::labels[NUMMENU] = { "1: Wznow", "2: Zagraj jako policjanci", "3: Zagraj jako zlodziej", "4: Wyjdz", "Wygrany: Zlodziej", "Wygrany: Policjanci" };
 Menu::Menu(bool arg, CheckWinEnum e)
 {
 	Continute = arg;

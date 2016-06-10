@@ -37,18 +37,18 @@ void Game::initGUI(){
 	color[3] = colors[3];
 	pos[0].x = 20;
 	pos[0].y = 1780;
-	pos[1].x = 520;
+	pos[1].x = 720;
 	pos[1].y = 1780;
-	pos[2].x = 700;
+	pos[2].x = 850;
 	pos[2].y = 1780;
 	pos[3].x = 1500;
 	pos[3].y = 1780;
-	GUIsurface[0] = TTF_RenderText_Solid(font, "Turns left:", color[0]);
+	GUIsurface[0] = TTF_RenderText_Solid(font, "Pozostalo tur:", color[0]);
 	std::ostringstream ss;
 	ss << turns;
 	string str = ss.str();
 	GUIsurface[1] = TTF_RenderText_Solid(font, str.c_str(), color[1]);
-	GUIsurface[2] = TTF_RenderText_Solid(font, "Player to move: ", color[2]);
+	GUIsurface[2] = TTF_RenderText_Solid(font, "Ruch gracza: ", color[2]);
 	GUIsurface[3] = TTF_RenderText_Solid(font, "placeholder", color[3]);
 
 }
@@ -221,10 +221,10 @@ void Game::draw(Graphics &graphics, Playable_Characters& PC) {
 	graphics.clear();
 
 	map.draw(graphics, 0, 0);
-	if (directionarrowsshow[0]) directionarrows[0].draw(graphics, 2030, 1766);
-	if (directionarrowsshow[1]) directionarrows[1].draw(graphics, 2080, 1810);
-	if (directionarrowsshow[2]) directionarrows[2].draw(graphics, 2030, 1857);
-	if (directionarrowsshow[3]) directionarrows[3].draw(graphics, 1971, 1810);
+	if (directionarrowsshow[0]) directionarrows[0].draw(graphics, 2080, 1766);
+	if (directionarrowsshow[1]) directionarrows[1].draw(graphics, 2130, 1810);
+	if (directionarrowsshow[2]) directionarrows[2].draw(graphics, 2080, 1857);
+	if (directionarrowsshow[3]) directionarrows[3].draw(graphics, 2030, 1810);
 	PC.thief->draw(graphics, PC.thief->_x, PC.thief->_y);
 	PC.police->draw(graphics, PC.police->_x, PC.police->_y);
 	PC.police2->draw(graphics, PC.police2->_x, PC.police2->_y);
@@ -258,9 +258,9 @@ void Game::updateGUI(Character* arg, Playable_Characters& PC, MAP& map) {
 	}
 	GUIsurface[1] = TTF_RenderText_Solid(font, str.c_str(), color[1]);
 	SDL_Color colors[3] = { { 0, 255, 0 }, { 0, 0, 255 }, { 255, 0, 0 } };
-	if (arg == PC.thief)		 GUIsurface[3] = TTF_RenderText_Solid(font, "Thief", colors[0]);
-	else if (arg == PC.police)	 GUIsurface[3] = TTF_RenderText_Solid(font, "Police", colors[1]);
-	else						 GUIsurface[3] = TTF_RenderText_Solid(font, "Police 2", colors[2]);
+	if (arg == PC.thief)		 GUIsurface[3] = TTF_RenderText_Solid(font, "Zlodziej", colors[0]);
+	else if (arg == PC.police)	 GUIsurface[3] = TTF_RenderText_Solid(font, "Policjant", colors[1]);
+	else						 GUIsurface[3] = TTF_RenderText_Solid(font, "Policjant 2", colors[2]);
 	if (arg->pos_y > 0 && map.map[arg->pos_y - 1][arg->pos_x].accessable()){
 		directionarrowsshow[0] = true;
 	}
